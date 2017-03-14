@@ -5,12 +5,30 @@ class Person(models.Model):
     person_id = models.CharField(max_length=40)
     person_uri = models.CharField(max_length=200)
     surrogate_id = models.CharField(max_length=80)
-    #attributes = ViewModelField('Attributes', 6, view_model_type=DictionaryViewModel, produceable=False)
-    #default_endpoint = ViewModelField('DefaultEndpoint', 8, view_model_type=Endpoint, produceable=False)
-    #endpoints = ViewModelField('Endpoints', 9, view_model_type=EndpointList, produceable=False)
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
+    attributes = {}
+    endpoints = []
+
+    def default_endpoint(self):
+        for endpoint in self.endpoints:
+            if endpoint.default:
+                return endpoint
+
+    def json_data(self):
+        return {
+            "Person": {
+                "PersonID": self.person_id,
+                "PersonURI": self.person_uri,
+                "SurrogateID": self.surrogate_id,
+                "Created": self.created.isoformat(),
+                "LastModified": self.last_modified.isoformat(),
+                "ModifiedBy": self.modified_by,
+                "Attributes": self.attributes,
+                "Endpoints": [e.json_data() for e in self.endpoints]
+            }
+        }
 
 
 class Channel(models.Model):
@@ -19,12 +37,29 @@ class Channel(models.Model):
     surrogate_id = models.CharField(max_length=80)
     type = models.CharField(max_length=40)
     name = models.CharField(max_length=80)
-    #tags = ViewModelField('Tags', 6, view_model_type=DictionaryViewModel, produceable=False)
     description = models.CharField(max_length=200)
     expires = models.DateTimeField()
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
+    tags = {}
+
+    def json_data(self):
+        return {
+            "Channel": {
+                "ChannelID": self.channel_id,
+                "ChannelURI": self.channel_uri,
+                "SurrogateID": self.surrogate_id,
+                "Type": self.type,
+                "Name": self.name,
+                "Description": self.description,
+                "Expires": self.expires.isoformat(),
+                "Created": self.created.isoformat(),
+                "LastModified": self.last_modified.isoformat(),
+                "ModifiedBy": self.modified_by,
+                "Tags": self.tags
+            }
+        }
 
 
 class Endpoint(models.Model):
@@ -37,6 +72,7 @@ class Endpoint(models.Model):
     owner = models.CharField(max_length=20)
     status = models.CharField(max_length=40)
     active = models.NullBooleanField()
+    default = models.NullBooleanField()
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
@@ -52,6 +88,7 @@ class Endpoint(models.Model):
                 "SubscriberID": self.user,
                 "OwnerID": self.owner,
                 "Active": self.active,
+                "Default": self.default,
                 "Created": self.created.isoformat(),
                 "LastModified": self.last_modified.isoformat(),
                 "ModifiedBy": self.modified_by
