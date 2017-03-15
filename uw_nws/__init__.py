@@ -10,9 +10,9 @@ from uw_nws.models import (
     Person, Channel, Endpoint, Subscription, CourseAvailableEvent)
 from uw_sws.term import get_current_term, get_term_after
 try:
-    from urllib.parse import quote
+    from urllib.parse import quote, urlencode
 except ImportError:
-    from urllib import quote
+    from urllib import quote, urlencode
 from datetime import datetime, time
 import dateutil.parser
 import json
@@ -243,6 +243,95 @@ class NWS(object):
             raise DataFailureException(url, response.status, response.data)
 
         return response.status
+
+    def create_new_subscription(self, subscription):
+        """
+        Create a new subscription
+        :param subscription: the new subscription the client wants to create
+        """
+        if subscription.subscription_id is not None:
+            self._validate_uuid(subscription.subscription_id)
+
+        if subscription.endpoint is not None:
+            if subscription.endpoint.user:
+                self._validate_subscriber_id(subscription.endpoint.user)
+
+            if subscription.endpoint.endpoint_id is not None:
+                self._validate_uuid(subscription.endpoint.endpoint_id)
+
+        if subscription.channel is not None:
+            self._validate_uuid(subscription.channel.channel_id)
+
+        url = "/notification/v1/subscription"
+        headers = {"Content-Type": "application/json"}
+        if self.override_user is not None:
+            headers['X_UW_ACT_AS'] = self.override_user
+
+        response = NWS_DAO().postURL(url, headers, subscription.json_data())
+
+        if response.status != 201:
+            raise DataFailureException(url, response.status, response.data)
+
+        return response.status
+
+    def get_subscriptions_by_channel_id(self, channel_id):
+        """
+        Search for all subscriptions on a given channel
+        """
+        return self._get_subscriptions_from_nws(channel_id=channel_id)
+
+    def get_subscriptions_by_subscriber_id(self, subscriber_id, max_results):
+        """
+        Search for all subscriptions by a given subscriber
+        """
+        return self._get_subscriptions_from_nws(
+            subscriber_id=subscriber_id, max_results=max_results)
+
+    def get_subscriptions_by_channel_id_and_subscriber_id(
+            self, channel_id, subscriber_id):
+        """
+        Search for all subscriptions by a given channel and subscriber
+        """
+        return self._get_subscriptions_from_nws(
+            channel_id=channel_id, subscriber_id=subscriber_id)
+
+    def get_subscriptions_by_channel_id_and_person_id(
+            self, channel_id, person_id):
+        """
+        Search for all subscriptions by a given channel and person
+        """
+        return self._get_subscriptions_from_nws(
+            channel_id=channel_id, person_id=person_id)
+
+    def get_subscription_by_channel_id_and_endpoint_id(
+            self, channel_id, endpoint_id):
+        """
+        Search for subscription by a given channel and endpoint
+        """
+        subscriptions = self._get_subscriptions_from_nws(
+            channel_id=channel_id, endpoint_id=endpoint_id)
+
+        try:
+            return subscriptions[0]
+        except IndexError:
+            raise DataFailureException(url, 404, "No subscription found")
+
+    def _get_subscriptions_from_nws(self, **kwargs):
+        """
+        Search for all subscriptions by parameters
+        """
+        url = "/notification/v1/subscription?%s" % urlencode(kwargs)
+
+        response = NWS_DAO().getURL(url, self._headers)
+
+        if response.status != 200:
+            raise DataFailureException(url, response.status, response.data)
+
+        data = json.loads(response.data)
+        subscriptions = []
+        for datum in data.get("Subscriptions", []):
+            subscriptions.append(self._subscription_from_json(datum))
+        return subscriptions
 
     def create_new_channel(self, channel):
         """
@@ -511,9 +600,7 @@ class NWS(object):
             person.last_modified = dateutil.parser.parse(
                 json_data["LastModified"])
         person.modified_by = json_data.get("ModifiedBy")
-
-        for key, val in json_data.get("Attributes", {}).iteritems():
-            person.attributes[key] = val
+        person.attributes = json_data.get("Attributes", {})
 
         for endpoint_data in json_data.get("Endpoints", []):
             person.endpoints.append(self._endpoint_from_json(endpoint_data))
@@ -536,11 +623,29 @@ class NWS(object):
             channel.last_modified = dateutil.parser.parse(
                 json_data["LastModified"])
         channel.modified_by = json_data.get("ModifiedBy")
-
-        for key, val in json_data.get("Tags", {}).iteritems():
-            channel.tags[key] = val
+        channel.tags = json_data.get("Tags", {})
 
         return channel
+
+    def _subscription_from_json(self, json_data):
+        subscription = Subscription()
+        subscription.subscription_id = json_data["SubscriptionID"]
+        subscription.subscription_uri = json_data["SubscriptionURI"]
+        if "Created" in json_data:
+            subscription.created = dateutil.parser.parse(json_data["Created"])
+        if "LastModified" in json_data:
+            subscription.last_modified = dateutil.parser.parse(
+                json_data["LastModified"])
+
+        if "Endpoint" in json_data:
+            subscription.endpoint = self._endpoint_from_json(
+                json_data["Endpoint"])
+
+        if "Channel" in json_data:
+            subscription.channel = self._channel_from_json(
+                json_data["Channel"])
+
+        return subscription
 
     def _validate_uuid(self, uuid):
         if (uuid is None or not self._re_uuid.match(str(uuid))):

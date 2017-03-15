@@ -34,7 +34,7 @@ class Person(models.Model):
 
 
 class Channel(models.Model):
-    channel_id = models.CharField(max_length=40)
+    channel_id = models.CharField(max_length=40, default=None)
     channel_uri = models.CharField(max_length=200)
     surrogate_id = models.CharField(max_length=80)
     type = models.CharField(max_length=40)
@@ -68,7 +68,7 @@ class Channel(models.Model):
 
 
 class Endpoint(models.Model):
-    endpoint_id = models.CharField(max_length=40)
+    endpoint_id = models.CharField(max_length=40, default=None)
     endpoint_uri = models.CharField(max_length=200)
     endpoint_address = models.CharField(max_length=200)
     carrier = models.CharField(max_length=40)
@@ -106,7 +106,6 @@ class Endpoint(models.Model):
 class Subscription(models.Model):
     subscription_id = models.CharField(max_length=40)
     subscription_uri = models.CharField(max_length=200)
-    subscription_type = models.CharField(max_length=40)
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
@@ -118,7 +117,6 @@ class Subscription(models.Model):
             "Subscription": {
                 "SubscriptionID": self.subscription_id,
                 "SubscriptionURI": self.subscription_uri,
-                "SubscriptionType": self.subscription_type,
                 "Created": self.created.isoformat() if (
                     self.created is not None) else None,
                 "LastModified": self.last_modified.isoformat() if (
