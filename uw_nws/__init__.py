@@ -320,7 +320,9 @@ class NWS(object):
         """
         Search for all subscriptions by parameters
         """
-        url = "/notification/v1/subscription?%s" % urlencode(kwargs)
+        params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
+        url = "/notification/v1/subscription?%s" % urlencode(
+            params, doseq=True)
 
         response = NWS_DAO().getURL(url, self._headers)
 
