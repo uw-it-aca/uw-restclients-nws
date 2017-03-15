@@ -6,8 +6,7 @@ from restclients_core.exceptions import (
     DataFailureException, InvalidNetID, InvalidRegID)
 from uw_nws.exceptions import InvalidUUID, InvalidEndpointProtocol
 from uw_nws.dao import NWS_DAO
-from uw_nws.models import (
-    Person, Channel, Endpoint, Subscription, CourseAvailableEvent)
+from uw_nws.models import Person, Channel, Endpoint, Subscription
 from uw_sws.term import get_current_term, get_term_after
 try:
     from urllib.parse import quote, urlencode
@@ -38,24 +37,6 @@ class NWS(object):
             r'^([a-z]adm_)?[a-z][a-z0-9]{0,7}(@washington.edu)?$', re.I)
         self._re_protocol = re.compile(r'^(Email|SMS)$', re.I)
         self._headers = {"Accept": "application/json"}
-
-    def get_endpoints(self, first_result=1, max_results=10):
-        """
-        Search for all endpoints
-        """
-        url = "/notification/v1/endpoint?first_result=%s&max_results=%s" % (
-            first_result, max_results)
-
-        response = NWS_DAO().getURL(url, self._headers)
-
-        if response.status != 200:
-            raise DataFailureException(url, response.status, response.data)
-
-        data = json.loads(response.data)
-        endpoints = []
-        for datum in data.get("Endpoints", []):
-            endpoints.append(self._endpoint_from_json(datum))
-        return endpoints
 
     def get_endpoint_by_endpoint_id(self, endpoint_id):
         """
@@ -183,7 +164,7 @@ class NWS(object):
             raise DataFailureException(url, response.status, response.data)
         return response.status
 
-    def create_new_endpoint(self, endpoint):
+    def create_endpoint(self, endpoint):
         """
         Create a new endpoint
         :param endpoint: is the new endpoint that the client wants to create
@@ -220,31 +201,7 @@ class NWS(object):
 
         return response.status
 
-    def update_subscription(self, subscription):
-        """
-        Update an existing subscription on a given channel
-        :param subscription: the subscription the client wants to update
-        """
-        if subscription.channel is not None:
-            self._validate_uuid(subscription.channel.channel_id)
-        if subscription.endpoint is not None:
-            if subscription.endpoint.endpoint_id is not None:
-                self._validate_uuid(subscription.endpoint.endpoint_id)
-            self._validate_subscriber_id(subscription.endpoint.user)
-
-        url = "/notification/v1/subscription/%s" % subscription.subscription_id
-        headers = {"Content-Type": "application/json"}
-        if self.override_user is not None:
-            headers['X_UW_ACT_AS'] = self.override_user
-
-        response = NWS_DAO().putURL(url, headers, subscription.json_data())
-
-        if response.status != 204:
-            raise DataFailureException(url, response.status, response.data)
-
-        return response.status
-
-    def create_new_subscription(self, subscription):
+    def create_subscription(self, subscription):
         """
         Create a new subscription
         :param subscription: the new subscription the client wants to create
@@ -295,14 +252,6 @@ class NWS(object):
         return self._get_subscriptions_from_nws(
             channel_id=channel_id, subscriber_id=subscriber_id)
 
-    def get_subscriptions_by_channel_id_and_person_id(
-            self, channel_id, person_id):
-        """
-        Search for all subscriptions by a given channel and person
-        """
-        return self._get_subscriptions_from_nws(
-            channel_id=channel_id, person_id=person_id)
-
     def get_subscription_by_channel_id_and_endpoint_id(
             self, channel_id, endpoint_id):
         """
@@ -335,50 +284,6 @@ class NWS(object):
             subscriptions.append(self._subscription_from_json(datum))
         return subscriptions
 
-    def create_new_channel(self, channel):
-        """
-        Create a new channel
-        :param channel: is the new channel that the client wants to create
-        """
-        url = "/notification/v1/channel"
-        headers = {"Content-Type": "application/json"}
-        response = NWS_DAO().postURL(
-            url, headers, channel.json_data())
-
-        if response.status != 201:
-            raise DataFailureException(url, response.status, response.data)
-
-        return response.status
-
-    def update_channel(self, channel):
-        """
-        Update an existing channel
-        :param channel: is the updated channel that the client wants to update
-        """
-        url = "/notification/v1/channel/%s" % (channel.channel_id)
-        headers = {"Content-Type": "application/json"}
-        response = NWS_DAO().putURL(url, headers, channel.json_data())
-
-        if response.status != 204:
-            raise DataFailureException(url, response.status, response.data)
-
-        return response.status
-
-    def delete_channel(self, channel_id):
-        """
-        Deleting an existing channel
-        :param channel_id: is the channel that the client wants to delete
-        """
-        self._validate_uuid(channel_id)
-
-        url = "/notification/v1/channel/%s" % (channel_id)
-        response = NWS_DAO().deleteURL(url, None)
-
-        if response.status != 204:
-            raise DataFailureException(url, response.status, response.data)
-
-        return response.status
-
     def get_channel_by_channel_id(self, channel_id):
         """
         Get a channel by channel id
@@ -386,21 +291,6 @@ class NWS(object):
         self._validate_uuid(channel_id)
 
         url = "/notification/v1/channel/%s" % (channel_id)
-
-        response = NWS_DAO().getURL(url, self._headers)
-
-        if response.status != 200:
-            raise DataFailureException(url, response.status, response.data)
-
-        data = json.loads(response.data)
-        return self._channel_from_json(data.get("Channel"))
-
-    def get_channel_by_surrogate_id(self, channel_type, surrogate_id):
-        """
-        Get a channel by surrogate id
-        """
-        key = "%s|%s" % (channel_type, surrogate_id)
-        url = "/notification/v1/channel/%s" % quote(key)
 
         response = NWS_DAO().getURL(url, self._headers)
 
@@ -493,24 +383,6 @@ class NWS(object):
 
         return terms
 
-    def get_channels(self, first_result=1, max_results=10):
-        """
-        Search for all channels
-        """
-        url = "/notification/v1/channel?first_result=%s&max_results=%s" % (
-            first_result, max_results)
-
-        response = NWS_DAO().getURL(url, self._headers)
-
-        if response.status != 200:
-            raise DataFailureException(url, response.status, response.data)
-
-        data = json.loads(response.data)
-        channels = []
-        for datum in data.get("Channels", []):
-            channels.append(self._channel_from_json(datum))
-        return channels
-
     def get_person_by_surrogate_id(self, surrogate_id):
         self._validate_subscriber_id(surrogate_id)
         return self._get_person_by_id(surrogate_id)
@@ -530,7 +402,7 @@ class NWS(object):
         data = json.loads(response.data)
         return self._person_from_json(data.get("Person"))
 
-    def create_new_person(self, person):
+    def create_person(self, person):
         """
         Create a new person
         :param person: is the new person that the client wants to crete

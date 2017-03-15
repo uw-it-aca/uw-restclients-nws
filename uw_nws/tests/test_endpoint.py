@@ -30,18 +30,10 @@ class NWSTestEndpoint(TestCase):
         endpoint.endpoint_uri = None
 
         self.assertRaises(
-            DataFailureException, nws.create_new_endpoint, endpoint)
+            DataFailureException, nws.create_endpoint, endpoint)
 
         endpoint.user = ""
-        self.assertRaises(InvalidNetID, nws.create_new_endpoint, endpoint)
-
-    def test_get_endpoints(self):
-        nws = NWS()
-        endpoints = nws.get_endpoints()
-        self.assertEquals(len(endpoints), 2)
-
-        endpoint = endpoints[0]
-        self._assert_endpoint_matches(endpoint)
+        self.assertRaises(InvalidNetID, nws.create_endpoint, endpoint)
 
     def test_endpoint_by_endpoint_id(self):
         nws = NWS()

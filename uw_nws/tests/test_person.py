@@ -37,13 +37,3 @@ class NWSTestPerson(TestCase):
         self.assertRaises(InvalidRegID, nws.get_person_by_uwregid, None)
         self.assertRaises(InvalidRegID, nws.get_person_by_uwregid,  "")
         self.assertRaises(InvalidRegID, nws.get_person_by_uwregid, 42)
-
-    def test_create_person(self):
-        nws = NWS()
-        person = nws.get_person_by_surrogate_id("javerage@washington.edu")
-        person.person_id = None
-        person.endpoints = []
-
-        self.assertRaises(DataFailureException, nws.create_new_person, person)
-        # response_status = nws.create_new_person(person)
-        # self.assertEquals(201, response_status)
