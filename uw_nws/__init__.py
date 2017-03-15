@@ -220,6 +220,30 @@ class NWS(object):
 
         return response.status
 
+    def update_subscription(self, subscription):
+        """
+        Update an existing subscription on a given channel
+        :param subscription: the subscription the client wants to update
+        """
+        if subscription.channel is not None:
+            self._validate_uuid(subscription.channel.channel_id)
+        if subscription.endpoint is not None:
+            if subscription.endpoint.endpoint_id is not None:
+                self._validate_uuid(subscription.endpoint.endpoint_id)
+            self._validate_subscriber_id(subscription.endpoint.user)
+
+        url = "/notification/v1/subscription/%s" % subscription.subscription_id
+        headers = {"Content-Type": "application/json"}
+        if self.override_user is not None:
+            headers['X_UW_ACT_AS'] = self.override_user
+
+        response = NWS_DAO().putURL(url, headers, subscription.json_data())
+
+        if response.status != 204:
+            raise DataFailureException(url, response.status, response.data)
+
+        return response.status
+
     def create_new_channel(self, channel):
         """
         Create a new channel
@@ -356,15 +380,17 @@ class NWS(object):
 
         return False
 
-    def get_terms_with_active_channels(self, channel_type):
+    def get_terms_with_active_channels(self, channel_type, term=None):
         """
         Returns a list of all sws.Terms that have active channels.
         """
-        # Check the current term, and the next 3, to see if they have
+        # Check the passed term, and the next 3, to see if they have
         # a channel for any course in that term.
         # when the sws term resource provides us with a timeschedule publish
         # date, use that instead of this.
-        term = get_current_term()
+        if term is None:
+            term = get_current_term()
+
         terms = []
         if self.term_has_active_channel(channel_type, term):
             terms.append(term)

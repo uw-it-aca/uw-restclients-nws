@@ -22,8 +22,10 @@ class Person(models.Model):
                 "PersonID": self.person_id,
                 "PersonURI": self.person_uri,
                 "SurrogateID": self.surrogate_id,
-                "Created": self.created.isoformat(),
-                "LastModified": self.last_modified.isoformat(),
+                "Created": self.created.isoformat() if (
+                    self.created is not None) else None,
+                "LastModified": self.last_modified.isoformat() if (
+                    self.last_modified is not None) else None,
                 "ModifiedBy": self.modified_by,
                 "Attributes": self.attributes,
                 "Endpoints": [e.json_data() for e in self.endpoints]
@@ -53,9 +55,12 @@ class Channel(models.Model):
                 "Type": self.type,
                 "Name": self.name,
                 "Description": self.description,
-                "Expires": self.expires.isoformat(),
-                "Created": self.created.isoformat(),
-                "LastModified": self.last_modified.isoformat(),
+                "Expires": self.expires.isoformat() if (
+                    self.expires is not None) else None,
+                "Created": self.created.isoformat() if (
+                    self.created is not None) else None,
+                "LastModified": self.last_modified.isoformat() if (
+                    self.last_modified is not None) else None,
                 "ModifiedBy": self.modified_by,
                 "Tags": self.tags
             }
@@ -89,8 +94,10 @@ class Endpoint(models.Model):
                 "OwnerID": self.owner,
                 "Active": self.active,
                 "Default": self.default,
-                "Created": self.created.isoformat(),
-                "LastModified": self.last_modified.isoformat(),
+                "Created": self.created.isoformat() if (
+                    self.created is not None) else None,
+                "LastModified": self.last_modified.isoformat() if (
+                    self.last_modified is not None) else None,
                 "ModifiedBy": self.modified_by
             }
         }
@@ -100,11 +107,29 @@ class Subscription(models.Model):
     subscription_id = models.CharField(max_length=40)
     subscription_uri = models.CharField(max_length=200)
     subscription_type = models.CharField(max_length=40)
-    #channel = ViewModelField('Channel', 4, view_model_type=Channel)
-    #endpoint = ViewModelField('Endpoint', 5, view_model_type=Endpoint)
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
+    channel = None
+    endpoint = None
+
+    def json_data(self):
+        return {
+            "Subscription": {
+                "SubscriptionID": self.subscription_id,
+                "SubscriptionURI": self.subscription_uri,
+                "SubscriptionType": self.subscription_type,
+                "Created": self.created.isoformat() if (
+                    self.created is not None) else None,
+                "LastModified": self.last_modified.isoformat() if (
+                    self.last_modified is not None) else None,
+                "ModifiedBy": self.modified_by,
+                "Channel": self.channel.json_data() if (
+                    self.channel is not None) else None,
+                "Endpoint": self.endpoint.json_data() if (
+                    self.endpoint is not None) else None
+            }
+        }
 
 
 class CourseAvailableEvent(models.Model):
@@ -149,4 +174,4 @@ class CourseAvailableEvent(models.Model):
                 "SpaceAvailable": self.space_available,
                 "NotificationMsg0": self.notification_msg_0
             }
-}
+        }

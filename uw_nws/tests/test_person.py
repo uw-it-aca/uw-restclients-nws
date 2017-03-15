@@ -42,7 +42,7 @@ class NWSTestPerson(TestCase):
         nws = NWS()
         person = nws.get_person_by_surrogate_id("javerage@washington.edu")
         person.person_id = None
-        person.endpoints = None
+        person.endpoints = []
 
         self.assertRaises(DataFailureException, nws.create_new_person, person)
         # response_status = nws.create_new_person(person)

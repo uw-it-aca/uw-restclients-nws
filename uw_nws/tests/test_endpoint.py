@@ -31,10 +31,8 @@ class NWSTestEndpoint(TestCase):
 
         self.assertRaises(
             DataFailureException, nws.create_new_endpoint, endpoint)
-        # response_status = nws.create_new_endpoint(endpoint)
-        # self.assertEquals(201, response_status)
 
-	endpoint.user = ""
+        endpoint.user = ""
         self.assertRaises(InvalidNetID, nws.create_new_endpoint, endpoint)
 
     def test_get_endpoints(self):
@@ -63,7 +61,7 @@ class NWSTestEndpoint(TestCase):
         endpoint = endpoints[0]
         self._assert_endpoint_matches(endpoint)
 
-	self.assertRaises(
+        self.assertRaises(
             InvalidNetID, nws.get_endpoints_by_subscriber_id, None)
         self.assertRaises(InvalidNetID, nws.get_endpoints_by_subscriber_id, "")
         self.assertRaises(InvalidNetID, nws.get_endpoints_by_subscriber_id, 32)
@@ -88,9 +86,9 @@ class NWSTestEndpoint(TestCase):
         self.assertRaises(
             InvalidNetID, nws.get_endpoint_by_subscriber_id_and_protocol,
             32, "sms")
-	self.assertRaises(
+        self.assertRaises(
             InvalidEndpointProtocol,
             nws.get_endpoint_by_subscriber_id_and_protocol, "javerage", None)
         self.assertRaises(
             InvalidEndpointProtocol,
-	    nws.get_endpoint_by_subscriber_id_and_protocol, "javerage", "")
+            nws.get_endpoint_by_subscriber_id_and_protocol, "javerage", "")
