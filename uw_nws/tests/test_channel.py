@@ -11,28 +11,6 @@ from restclients_core.exceptions import DataFailureException
 @fdao_nws_override
 @fdao_sws_override
 class NWSTestChannel(TestCase):
-    def test_create_channel(self):
-        channel = Channel()
-        channel.surrogate_id = "2012,autumn,uwit,100,a"
-        channel.type = "uw_student_courseavailable"
-        channel.name = "TEST CREATE CHANNEL"
-        channel.description = "TEST CREATE CHANNEL \n"
-
-        nws = NWS()
-        self.assertRaises(
-            DataFailureException, nws.create_new_channel, channel)
-
-    def test_update_channel(self):
-        channel = Channel()
-        channel.surrogate_id = "2012,autumn,uwit,100,a"
-        channel.type = "uw_student_courseavailable"
-        channel.name = "TEST CREATE CHANNEL"
-        channel.description = "TEST CREATE CHANNEL \n"
-
-        nws = NWS()
-        self.assertRaises(
-            DataFailureException, nws.update_channel, channel)
-
     def test_channel_by_channel_id(self):
         nws = NWS()
         channel = nws.get_channel_by_channel_id(
@@ -59,12 +37,6 @@ class NWSTestChannel(TestCase):
         terms = nws.get_terms_with_active_channels(
             "uw_student_courseavailable", term=term)
         self.assertEquals(len(terms), 0)
-
-    def test_channel_surrogate_id(self):
-        nws = NWS()
-        channel = nws.get_channel_by_surrogate_id(
-            "uw_student_courseavailable", "2012,autumn,cse,100,w")
-        self._assert_channel(channel)
 
     def _assert_channel(self, channel):
         self.assertEquals(

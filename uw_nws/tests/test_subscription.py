@@ -45,7 +45,7 @@ class NWSTestSubscription(TestCase):
 
         nws = NWS()
         self.assertRaises(
-            DataFailureException, nws.create_new_subscription, subscription)
+            DataFailureException, nws.create_subscription, subscription)
 
     def test_create_invalid_subscriber_id_subscription(self):
         subscription = self._setup_subscription()
@@ -53,7 +53,7 @@ class NWSTestSubscription(TestCase):
 
         nws = NWS()
         self.assertRaises(
-            InvalidNetID, nws.create_new_subscription, subscription)
+            InvalidNetID, nws.create_subscription, subscription)
 
     def test_create_empty_channelid_subscription(self):
         subscription = self._setup_subscription()
@@ -61,24 +61,7 @@ class NWSTestSubscription(TestCase):
 
         nws = NWS()
         self.assertRaises(
-            InvalidUUID, nws.create_new_subscription, subscription)
-
-    def test_update_subscription(self):
-        subscription = self._setup_subscription()
-
-        nws = NWS()
-        self.assertRaises(
-            DataFailureException, nws.update_subscription, subscription)
-
-    def test_update_invalid_subscriber_id_subscription(self):
-        subscription = self._setup_subscription()
-        subscription.endpoint.user = "-@#$ksjdsfkli13290243290490"
-
-        nws = NWS()
-        self.assertRaises(InvalidNetID, nws.update_subscription, subscription)
-
-        subscription.endpoint.user = None
-        self.assertRaises(InvalidNetID, nws.update_subscription, subscription)
+            InvalidUUID, nws.create_subscription, subscription)
 
     def test_delete_subscription(self):
         nws = NWS()
