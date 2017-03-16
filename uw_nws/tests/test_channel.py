@@ -49,7 +49,7 @@ class NWSTestChannel(TestCase):
         nws = NWS()
         term = get_term_by_year_and_quarter(2013, 'spring')
 
-        dt = datetime(2013, 05, 31, 0, 0, 0)
+        dt = datetime(2013, 5, 31, 0, 0, 0)
         self.assertEquals(
             nws.term_has_active_channel(
                 "uw_student_courseavailable", term, expires=dt),
