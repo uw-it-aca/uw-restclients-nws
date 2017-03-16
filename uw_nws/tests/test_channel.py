@@ -6,6 +6,7 @@ from uw_sws.term import get_term_by_year_and_quarter
 from uw_sws.util import fdao_sws_override
 from uw_nws.exceptions import InvalidUUID
 from restclients_core.exceptions import DataFailureException
+from datetime import datetime
 
 
 @fdao_nws_override
@@ -17,7 +18,12 @@ class NWSTestChannel(TestCase):
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
         self._assert_channel(channel)
 
+    def test_channel_by_channel_id_exceptions(self):
+        nws = NWS()
         self.assertRaises(InvalidUUID, nws.get_channel_by_channel_id, "abc")
+        self.assertRaises(
+            DataFailureException, nws.get_channel_by_channel_id,
+            "00000000-d6f6-4afb-8165-8dbe6232119f")
 
     def test_channel_sln(self):
         nws = NWS()
@@ -25,11 +31,29 @@ class NWSTestChannel(TestCase):
             "uw_student_courseavailable", "12345")
         self.assertEquals(len(channels), 1)
 
+        self.assertRaises(
+            DataFailureException, nws.get_channels_by_sln,
+            "uw_student_courseavailable", "00000")
+
     def test_channel_sln_and_term(self):
         nws = NWS()
         channels = nws.get_channels_by_sln_year_quarter(
             "uw_student_courseavailable", "12345", 2012, "autumn")
         self.assertEquals(len(channels), 1)
+
+        self.assertRaises(
+            DataFailureException, nws.get_channels_by_sln_year_quarter,
+            "uw_student_courseavailable", "12345", 2013, "summer")
+
+    def test_term_has_active_channel(self):
+        nws = NWS()
+        term = get_term_by_year_and_quarter(2013, 'spring')
+
+        dt = datetime(2013, 5, 31, 0, 0, 0)
+        self.assertEquals(
+            nws.term_has_active_channel(
+                "uw_student_courseavailable", term, expires=dt),
+            True)
 
     def test_term_with_active_channels(self):
         nws = NWS()
