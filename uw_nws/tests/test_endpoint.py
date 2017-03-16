@@ -22,19 +22,6 @@ class NWSTestEndpoint(TestCase):
         self.assertEquals('sdf', endpoint.owner)
         self.assertEquals(False, endpoint.active)
 
-    def test_create_endpoint(self):
-        nws = NWS()
-        endpoint = nws.get_endpoint_by_endpoint_id(
-            "780f2a49-2118-4969-9bef-bbd38c26970a")
-        endpoint.endpoint_id = None
-        endpoint.endpoint_uri = None
-
-        self.assertRaises(
-            DataFailureException, nws.create_endpoint, endpoint)
-
-        endpoint.user = ""
-        self.assertRaises(InvalidNetID, nws.create_endpoint, endpoint)
-
     def test_endpoint_by_endpoint_id(self):
         nws = NWS()
         endpoint = nws.get_endpoint_by_endpoint_id(
@@ -44,6 +31,9 @@ class NWSTestEndpoint(TestCase):
         self.assertRaises(InvalidUUID, nws.get_endpoint_by_endpoint_id, None)
         self.assertRaises(InvalidUUID, nws.get_endpoint_by_endpoint_id,  '')
         self.assertRaises(InvalidUUID, nws.get_endpoint_by_endpoint_id, 'ABC')
+        self.assertRaises(
+            DataFailureException, nws.get_endpoint_by_endpoint_id,
+            '00000000-0000-0000-0000-000000000000')
 
     def test_endpoint_search_by_subscriber_id(self):
         nws = NWS()
@@ -58,10 +48,19 @@ class NWSTestEndpoint(TestCase):
         self.assertRaises(InvalidNetID, nws.get_endpoints_by_subscriber_id, "")
         self.assertRaises(InvalidNetID, nws.get_endpoints_by_subscriber_id, 32)
 
-    def test_endpoint_search_by_endpoint_address(self):
+    def test_endpoint_by_address(self):
         nws = NWS()
         endpoint = nws.get_endpoint_by_address("222-222-3333")
         self._assert_endpoint_matches(endpoint)
+
+    def test_endpoint_by_address_exceptions(self):
+        nws = NWS()
+        # Valid address, no endpoints
+        self.assertRaises(
+            DataFailureException, nws.get_endpoint_by_address, "123-456-7890")
+        # Valid address, no file found
+        self.assertRaises(
+            DataFailureException, nws.get_endpoint_by_address, "000-000-0000")
 
     def test_endpoint_by_subscriber_id_and_protocol(self):
         nws = NWS()
@@ -69,6 +68,17 @@ class NWSTestEndpoint(TestCase):
             "javerage", "sms")
         self._assert_endpoint_matches(endpoint)
 
+    def test_endpoint_by_subscriber_id_and_protocol_exceptions(self):
+        nws = NWS()
+        # Valid netid and protocol, no endpoints
+        self.assertRaises(
+            DataFailureException,
+            nws.get_endpoint_by_subscriber_id_and_protocol,
+            "javerage", "email")
+        # Valid netid and protocol, file not found
+        self.assertRaises(
+            DataFailureException,
+            nws.get_endpoint_by_subscriber_id_and_protocol, "bill", "sms")
         self.assertRaises(
             InvalidNetID, nws.get_endpoint_by_subscriber_id_and_protocol,
             None, "sms")
@@ -84,3 +94,54 @@ class NWSTestEndpoint(TestCase):
         self.assertRaises(
             InvalidEndpointProtocol,
             nws.get_endpoint_by_subscriber_id_and_protocol, "javerage", "")
+
+    def test_resend_sms_endpoint_verification(self):
+        nws = NWS()
+        self.assertRaises(
+            InvalidUUID, nws.resend_sms_endpoint_verification, "")
+        self.assertRaises(
+            DataFailureException, nws.resend_sms_endpoint_verification,
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+
+    def test_create_endpoint(self):
+        nws = NWS(override_user="javerage")
+        endpoint = nws.get_endpoint_by_endpoint_id(
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+        endpoint.endpoint_id = None
+        endpoint.endpoint_uri = None
+
+        self.assertRaises(
+            DataFailureException, nws.create_endpoint, endpoint)
+
+        endpoint = nws.get_endpoint_by_endpoint_id(
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+        endpoint.user = ""
+        self.assertRaises(InvalidNetID, nws.create_endpoint, endpoint)
+
+    def test_update_endpoint(self):
+        nws = NWS(override_user="javerage")
+        endpoint = nws.get_endpoint_by_endpoint_id(
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+
+        self.assertRaises(
+            DataFailureException, nws.update_endpoint, endpoint)
+
+        endpoint = nws.get_endpoint_by_endpoint_id(
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+        endpoint.endpoint_id = ""
+        self.assertRaises(
+            InvalidUUID, nws.update_endpoint, endpoint)
+
+        endpoint = nws.get_endpoint_by_endpoint_id(
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+        endpoint.user = ""
+        self.assertRaises(
+            InvalidNetID, nws.update_endpoint, endpoint)
+
+    def test_delete_endpoint(self):
+        nws = NWS(override_user="javerage")
+        self.assertRaises(
+            DataFailureException, nws.delete_endpoint,
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+        self.assertRaises(
+            InvalidUUID, nws.delete_endpoint, "")

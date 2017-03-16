@@ -28,11 +28,30 @@ class NWSTestSubscription(TestCase):
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
         self.assertEquals(len(subscriptions), 5)
 
+    def test_subscriptions_channel_id_and_endpoint_id(self):
+        nws = NWS()
+        subscription = nws.get_subscription_by_channel_id_and_endpoint_id(
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f",
+            "780f2a49-2118-4969-9bef-bbd38c26970a")
+
+        self.assertEquals(subscription.endpoint.endpoint_id,
+                          "780f2a49-2118-4969-9bef-bbd38c26970a")
+
+        self.assertRaises(
+            DataFailureException,
+            nws.get_subscription_by_channel_id_and_endpoint_id,
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f",
+            "000f2a49-2118-4969-9bef-bbd38c26970a")
+
     def test_subscriptions_subscriber_id(self):
         nws = NWS()
         subscriptions = nws.get_subscriptions_by_subscriber_id(
-            "javerage", "10")
+            "javerage", max_results=10)
         self.assertEquals(len(subscriptions), 5)
+
+        self.assertRaises(
+            DataFailureException, nws.get_subscriptions_by_subscriber_id,
+            "bill")
 
     def test_subscriptions_channel_id_subscriber_id(self):
         nws = NWS()
@@ -43,9 +62,13 @@ class NWSTestSubscription(TestCase):
     def test_create_subscription(self):
         subscription = self._setup_subscription()
 
-        nws = NWS()
+        nws = NWS(override_user="javerage")
         self.assertRaises(
             DataFailureException, nws.create_subscription, subscription)
+
+        subscription.endpoint.endpoint_id = "abc"
+        self.assertRaises(
+            InvalidUUID, nws.create_subscription, subscription)
 
     def test_create_invalid_subscriber_id_subscription(self):
         subscription = self._setup_subscription()
@@ -64,7 +87,7 @@ class NWSTestSubscription(TestCase):
             InvalidUUID, nws.create_subscription, subscription)
 
     def test_delete_subscription(self):
-        nws = NWS()
+        nws = NWS(override_user="javerage")
         self.assertRaises(
             DataFailureException, nws.delete_subscription,
             "652236c6-a85a-4845-8dc5-3e518bec044c")
