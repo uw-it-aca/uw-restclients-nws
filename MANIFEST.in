@@ -1,0 +1,2 @@
+include uw_nws/VERSION
+recursive-include uw_nws *
