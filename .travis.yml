@@ -22,8 +22,8 @@ before_deploy:
 - echo $TRAVIS_TAG > uw_nws/VERSION
 deploy:
   provider: pypi
-  server: https://pypi.python.org/pypi
-  user: uw-it-aca
+  server: https://testpypi.python.org/pypi
+  user: uw-it-axdd
   skip_cleanup: true
   password:
     secure: Ao2DynNfmk4OxD/Fnnfpjw4cd2D/k1bW6hpjeVgJv0o1QRMIh+WQNZcY5I1iqzvStks+4cF6gfVrUChaUv7ONEzW2JeZk62uPz3vt17ALhsG5T5iDDeMzwhGFoTEht1VPboFH9rX0N15Fo7fAk1Vaa40Vh9ZvLIR8LSo0qgLsn1h+S91BEe67zZphLNPHiV4DEpJsgSpGbXCmBlRZu3U4joeTqv6wOPjs1sz0+ZFngEQy5ueOtVqLvJdRbiMjfqAUDLv7SV9q74iJy2DGAoHsQGPw13d42DAC1YjzNGfE67fAtdM+pr352F4VPDqDTGdQN9BKGmL1uD09xoKiPVndDbSgEs9UbbmHJ/WDSvqUVLnsIWNi/qe9FlSWY/blchgt7ttQX4k9E6shLM8DC53y66YMEIy5uEcM0c3JYZfGy2nP2lC7MIBNVrF0xCcQYDZKChWtEFCIegXdoJ6z5j+/dIz2UHk/SN8v9qzM6Ftl42BJJuG0qrVWfy4gQILNJJmA1giuLGs3lbi5h6HVh2+BwGlC3JIPXMp/WM9/C9DABXHO75E79qgwonhgcdJi85YZMc0lRvwkrVdOAG2tSlMM0yjVV/3c97aWNiThFuNIqeunqFE+yvZOzl8m8jrUs1Zu5Xgr0B8rj1MjuNia9mMqISRqJaxxSM/KHMLvFZvzYQ=
