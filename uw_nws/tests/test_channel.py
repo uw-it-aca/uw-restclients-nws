@@ -2,15 +2,12 @@ from unittest import TestCase
 from uw_nws import NWS
 from uw_nws.models import Channel
 from uw_nws.utilities import fdao_nws_override
-from uw_sws.term import get_term_by_year_and_quarter
-from uw_sws.util import fdao_sws_override
 from uw_nws.exceptions import InvalidUUID
 from restclients_core.exceptions import DataFailureException
 from datetime import datetime
 
 
 @fdao_nws_override
-@fdao_sws_override
 class NWSTestChannel(TestCase):
     def test_channel_by_channel_id(self):
         nws = NWS()
@@ -45,22 +42,16 @@ class NWSTestChannel(TestCase):
             DataFailureException, nws.get_channels_by_sln_year_quarter,
             "uw_student_courseavailable", "12345", 2013, "summer")
 
-    def test_term_has_active_channel(self):
+    def test_active_channels_by_year_quarter(self):
         nws = NWS()
-        term = get_term_by_year_and_quarter(2013, 'spring')
-
         dt = datetime(2013, 5, 31, 0, 0, 0)
-        self.assertEquals(
-            nws.term_has_active_channel(
-                "uw_student_courseavailable", term, expires=dt),
-            True)
+        channels = nws.get_active_channels_by_year_quarter(
+            "uw_student_courseavailable", 2013, 'spring', expires=dt)
+        self.assertEquals(len(channels), 1)
 
-    def test_term_with_active_channels(self):
-        nws = NWS()
-        term = get_term_by_year_and_quarter(2013, 'spring')
-        terms = nws.get_terms_with_active_channels(
-            "uw_student_courseavailable", term=term)
-        self.assertEquals(len(terms), 0)
+        self.assertRaises(
+            DataFailureException,  nws.get_active_channels_by_year_quarter,
+            "uw_student_courseavailable", 2013, 'summer', expires=dt)
 
     def _assert_channel(self, channel):
         self.assertEquals(
