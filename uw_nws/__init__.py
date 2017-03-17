@@ -7,7 +7,6 @@ from restclients_core.exceptions import (
 from uw_nws.exceptions import InvalidUUID, InvalidEndpointProtocol
 from uw_nws.dao import NWS_DAO
 from uw_nws.models import Person, Channel, Endpoint, Subscription
-from uw_sws.term import get_current_term, get_term_after
 try:
     from urllib.parse import quote, urlencode
 except ImportError:
@@ -221,14 +220,14 @@ class NWS(object):
         """
         Search for all subscriptions on a given channel
         """
-        return self._get_subscriptions_from_nws(channel_id=channel_id)
+        return self.search_subscriptions(channel_id=channel_id)
 
     def get_subscriptions_by_subscriber_id(
             self, subscriber_id, max_results=10):
         """
         Search for all subscriptions by a given subscriber
         """
-        return self._get_subscriptions_from_nws(
+        return self.search_subscriptions(
             subscriber_id=subscriber_id, max_results=max_results)
 
     def get_subscriptions_by_channel_id_and_subscriber_id(
@@ -236,7 +235,7 @@ class NWS(object):
         """
         Search for all subscriptions by a given channel and subscriber
         """
-        return self._get_subscriptions_from_nws(
+        return self.search_subscriptions(
             channel_id=channel_id, subscriber_id=subscriber_id)
 
     def get_subscription_by_channel_id_and_endpoint_id(
@@ -244,7 +243,7 @@ class NWS(object):
         """
         Search for subscription by a given channel and endpoint
         """
-        subscriptions = self._get_subscriptions_from_nws(
+        subscriptions = self.search_subscriptions(
             channel_id=channel_id, endpoint_id=endpoint_id)
 
         try:
@@ -252,7 +251,7 @@ class NWS(object):
         except IndexError:
             raise DataFailureException(url, 404, "No subscription found")
 
-    def _get_subscriptions_from_nws(self, **kwargs):
+    def search_subscriptions(self, **kwargs):
         """
         Search for all subscriptions by parameters
         """
@@ -291,28 +290,36 @@ class NWS(object):
         """
         Search for all channels by sln
         """
-        url = "/notification/v1/channel?type=%s&tag_sln=%s" % (
-            channel_type, sln)
-
-        response = NWS_DAO().getURL(url, self._read_headers)
-
-        if response.status != 200:
-            raise DataFailureException(url, response.status, response.data)
-
-        data = json.loads(response.data)
-        channels = []
-        for datum in data.get("Channels", []):
-            channels.append(self._channel_from_json(datum))
-        return channels
+        return self.search_channels(type=channel_type, tag_sln=sln)
 
     def get_channels_by_sln_year_quarter(
             self, channel_type, sln, year, quarter):
         """
         Search for all channels by sln, year and quarter
         """
-        url = ("/notification/v1/channel?type=%s&"
-               "tag_sln=%s&tag_year=%s&tag_quarter=%s") % (
-                channel_type, sln, year, quarter)
+        return self.search_channels(
+            type=channel_type, tag_sln=sln, tag_year=year, tag_quarter=quarter)
+
+    def get_active_channels_by_year_quarter(
+            self, channel_type, year, quarter, expires=None):
+        """
+        Search for all active channels by year and quarter
+        """
+        if expires is None:
+            # Set expires_after to midnight of current day
+            expires = datetime.combine(datetime.utcnow().date(), time.min)
+
+        return self.search_channels(
+            type=channel_type, tag_year=year, tag_quarter=quarter,
+            expires_after=expires.isoformat())
+
+    def search_channels(self, **kwargs):
+        """
+        Search for all channels by parameters
+        """
+        params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
+        url = "/notification/v1/channel?%s" % urlencode(
+            params, doseq=True)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -324,52 +331,6 @@ class NWS(object):
         for datum in data.get("Channels", []):
             channels.append(self._channel_from_json(datum))
         return channels
-
-    def term_has_active_channel(self, channel_type, term, expires=None):
-        """
-        Checks to see if there exists a channel for the given sws.Term object's
-        year and quarter.
-        """
-        if expires is None:
-            # Set expires_after to midnight of current day to allow for caching
-            expires = datetime.combine(datetime.utcnow().date(), time.min)
-
-        url = ("/notification/v1/channel?tag_year=%s&"
-               "tag_quarter=%s&max_results=1&expires_after=%s") % (
-                term.year, term.quarter, expires.isoformat())
-
-        response = NWS_DAO().getURL(url, self._read_headers)
-
-        if response.status != 200:
-            return False
-
-        data = json.loads(response.data)
-        if data.get("TotalCount", 0) > 0:
-            return True
-
-        return False
-
-    def get_terms_with_active_channels(self, channel_type, term=None):
-        """
-        Returns a list of all sws.Terms that have active channels.
-        """
-        # Check the passed term, and the next 3, to see if they have
-        # a channel for any course in that term.
-        # when the sws term resource provides us with a timeschedule publish
-        # date, use that instead of this.
-        if term is None:
-            term = get_current_term()
-
-        terms = []
-        if self.term_has_active_channel(channel_type, term):
-            terms.append(term)
-
-        for i in range(3):
-            term = get_term_after(term)
-            if self.term_has_active_channel(channel_type, term):
-                terms.append(term)
-
-        return terms
 
     def get_person_by_surrogate_id(self, surrogate_id):
         self._validate_subscriber_id(surrogate_id)
@@ -470,7 +431,7 @@ class NWS(object):
         channel.surrogate_id = json_data["SurrogateID"]
         channel.type = json_data["Type"]
         channel.name = json_data["Name"]
-        channel.description = json_data["Description"]
+        channel.description = json_data.get("Description")
         if "Expires" in json_data:
             channel.expires = dateutil.parser.parse(json_data["Expires"])
         if "Created" in json_data:
