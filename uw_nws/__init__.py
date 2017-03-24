@@ -149,7 +149,7 @@ class NWS(object):
         :param endpoint: is the updated endpoint the client wants to update
         """
         self._validate_uuid(endpoint.endpoint_id)
-        self._validate_subscriber_id(endpoint.user)
+        self._validate_subscriber_id(endpoint.subscriber_id)
 
         url = "/notification/v1/endpoint/%s" % (endpoint.endpoint_id)
         response = NWS_DAO().putURL(
@@ -164,7 +164,7 @@ class NWS(object):
         Create a new endpoint
         :param endpoint: is the new endpoint that the client wants to create
         """
-        self._validate_subscriber_id(endpoint.user)
+        self._validate_subscriber_id(endpoint.subscriber_id)
 
         url = "/notification/v1/endpoint"
         response = NWS_DAO().postURL(
@@ -198,8 +198,9 @@ class NWS(object):
             self._validate_uuid(subscription.subscription_id)
 
         if subscription.endpoint is not None:
-            if subscription.endpoint.user:
-                self._validate_subscriber_id(subscription.endpoint.user)
+            if subscription.endpoint.subscriber_id is not None:
+                self._validate_subscriber_id(
+                    subscription.endpoint.subscriber_id)
 
             if subscription.endpoint.endpoint_id is not None:
                 self._validate_uuid(subscription.endpoint.endpoint_id)
@@ -215,6 +216,9 @@ class NWS(object):
             raise DataFailureException(url, response.status, response.data)
 
         return response.status
+
+    def create_new_subscription(self, subscription):
+        return self.create_subscription(subscription)
 
     def get_subscriptions_by_channel_id(self, channel_id):
         """
@@ -367,6 +371,9 @@ class NWS(object):
 
         return response.status
 
+    def create_new_person(self, person):
+        return self.create_person(person)
+
     def update_person(self, person):
         """
         Update an existing person
@@ -394,7 +401,7 @@ class NWS(object):
         endpoint.endpoint_address = json_data["EndpointAddress"]
         endpoint.carrier = json_data.get("Carrier")
         endpoint.protocol = json_data["Protocol"]
-        endpoint.user = json_data["SubscriberID"]
+        endpoint.subscriber_id = json_data["SubscriberID"]
         endpoint.owner = json_data["OwnerID"]
         endpoint.active = json_data["Active"]
         endpoint.default = json_data.get("Default")

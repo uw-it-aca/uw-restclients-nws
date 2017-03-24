@@ -15,8 +15,7 @@ class NWSTestSubscription(TestCase):
         subscription.endpoint.endpoint_address = "javerage0@uw.edu"
         subscription.endpoint.protocol = "Email"
         subscription.endpoint.subscriber_id = "javerage@washington.edu"
-        subscription.endpoint.owner_id = "javerage@washington.edu"
-        subscription.endpoint.user = "javerage@washington.edu"
+        subscription.endpoint.owner = "javerage@washington.edu"
         subscription.channel = Channel()
         subscription.channel.channel_id = (
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
@@ -72,7 +71,7 @@ class NWSTestSubscription(TestCase):
 
     def test_create_invalid_subscriber_id_subscription(self):
         subscription = self._setup_subscription()
-        subscription.endpoint.user = "-@#$ksjdsfkli13290243290490"
+        subscription.endpoint.subscriber_id = "-@#$ksjdsfkli13290243290490"
 
         nws = NWS()
         self.assertRaises(

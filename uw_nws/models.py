@@ -73,7 +73,7 @@ class Endpoint(models.Model):
     endpoint_address = models.CharField(max_length=200)
     carrier = models.CharField(max_length=40)
     protocol = models.SlugField(max_length=40)
-    user = models.CharField(max_length=20)
+    subscriber_id = models.CharField(max_length=20)
     owner = models.CharField(max_length=20)
     status = models.CharField(max_length=40)
     active = models.NullBooleanField()
@@ -81,6 +81,12 @@ class Endpoint(models.Model):
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
+
+    def get_user_net_id(self):
+        return self.subscriber_id
+
+    def get_owner_net_id(self):
+        return self.owner
 
     def json_data(self):
         return {
@@ -90,7 +96,7 @@ class Endpoint(models.Model):
                 "EndpointAddress": self.endpoint_address,
                 "Carrier": self.carrier,
                 "Protocol": self.protocol,
-                "SubscriberID": self.user,
+                "SubscriberID": self.subscriber_id,
                 "OwnerID": self.owner,
                 "Active": self.active,
                 "Default": self.default,
