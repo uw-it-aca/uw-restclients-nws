@@ -153,7 +153,7 @@ class NWS(object):
 
         url = "/notification/v1/endpoint/%s" % (endpoint.endpoint_id)
         response = NWS_DAO().putURL(
-            url, self._write_headers, endpoint.json_data())
+            url, self._write_headers, self._json_body(endpoint.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -168,11 +168,14 @@ class NWS(object):
 
         url = "/notification/v1/endpoint"
         response = NWS_DAO().postURL(
-            url, self._write_headers, endpoint.json_data())
+            url, self._write_headers, self._json_body(endpoint.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
         return response.status
+
+    def create_new_endpoint(self, endpoint):
+        return self.create_endpoint(endpoint)
 
     def delete_subscription(self, subscription_id):
         """
@@ -209,8 +212,8 @@ class NWS(object):
             self._validate_uuid(subscription.channel.channel_id)
 
         url = "/notification/v1/subscription"
-        response = NWS_DAO().postURL(
-            url, self._write_headers, subscription.json_data())
+        response = NWS_DAO().postURL(url, self._write_headers,
+                                     self._json_body(subscription.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
@@ -364,7 +367,7 @@ class NWS(object):
 
         url = "/notification/v1/person"
         response = NWS_DAO().postURL(
-            url, self._write_headers, person.json_data())
+            url, self._write_headers, self._json_body(person.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
@@ -387,7 +390,7 @@ class NWS(object):
 
         url = "/notification/v1/person/%s" % person.person_id
         response = NWS_DAO().putURL(
-            url, self._write_headers, person.json_data())
+            url, self._write_headers, self._json_body(person.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -487,3 +490,6 @@ class NWS(object):
     def _validate_endpoint_protocol(self, protocol):
         if (protocol is None or not self._re_protocol.match(str(protocol))):
             raise InvalidEndpointProtocol(protocol)
+
+    def _json_body(self, json_data):
+        return json.dumps(json_data)
