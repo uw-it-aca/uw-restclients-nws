@@ -98,6 +98,7 @@ class Endpoint(models.Model):
                 "Protocol": self.protocol,
                 "SubscriberID": self.subscriber_id,
                 "OwnerID": self.owner,
+                "Status": self.status,
                 "Active": self.active,
                 "Default": self.default,
                 "Created": self.created.isoformat() if (
