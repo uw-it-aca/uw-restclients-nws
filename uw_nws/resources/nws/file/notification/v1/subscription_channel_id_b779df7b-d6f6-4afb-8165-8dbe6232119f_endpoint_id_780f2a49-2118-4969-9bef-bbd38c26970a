@@ -22,6 +22,7 @@
                 "Protocol": "SMS",
                 "SubscriberID": "javerage",
                 "OwnerID": "javerage",
+                "Status": "unconfirmed",
                 "Active": false,
                 "Default": false,
                 "Created": "2012-11-13 22:51:51+00:00",

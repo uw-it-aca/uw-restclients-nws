@@ -406,6 +406,7 @@ class NWS(object):
         endpoint.protocol = json_data["Protocol"]
         endpoint.subscriber_id = json_data["SubscriberID"]
         endpoint.owner = json_data["OwnerID"]
+        endpoint.status = json_data["Status"]
         endpoint.active = json_data["Active"]
         endpoint.default = json_data.get("Default")
         if "Created" in json_data:

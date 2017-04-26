@@ -8,8 +8,9 @@
             "Protocol": "sms",
             "SubscriberID": "javerage",
             "OwnerID": "sdf",
+            "Status": "unconfirmed",
             "Active": false,
-        "Default": false,
+            "Default": false,
             "Created": "2012-11-27T20:08:08.914Z",
             "LastModified": "2012-11-27T20:08:08.914Z"
         }
