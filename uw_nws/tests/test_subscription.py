@@ -22,6 +22,10 @@ class NWSTestSubscription(TestCase):
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
         return subscription
 
+    def test_default_subscription(self):
+        subscription = Subscription()
+        self.assertEquals(subscription.subscription_id, None)
+
     def test_subscriptions_channel_id(self):
         nws = NWS()
         subscriptions = nws.get_subscriptions_by_channel_id(
