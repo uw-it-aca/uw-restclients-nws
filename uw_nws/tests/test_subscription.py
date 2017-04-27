@@ -111,3 +111,16 @@ class NWSTestSubscription(TestCase):
             InvalidNetID, nws._validate_subscriber_id, 'javerage@gmail.com')
         self.assertRaises(
             InvalidNetID, nws._validate_subscriber_id, 'javerage@')
+
+    def test_json_data(self):
+        subscription = self._setup_subscription()
+        data = subscription.json_data()
+
+        self.assertEquals(
+            data["Subscription"]["SubscriptionID"],
+            "c4597f93-0f62-4feb-ac88-af5f0329001f")
+        self.assertEquals(
+            data["Subscription"]["Endpoint"]["Protocol"], "Email")
+        self.assertEquals(
+            data["Subscription"]["Channel"]["ChannelID"],
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f")
