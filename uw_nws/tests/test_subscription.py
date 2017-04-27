@@ -21,6 +21,10 @@ class NWSTestSubscription(TestCase):
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
         return subscription
 
+    def test_default_subscription(self):
+        subscription = Subscription()
+        self.assertEquals(subscription.subscription_id, None)
+
     def test_subscriptions_channel_id(self):
         nws = NWS()
         subscriptions = nws.get_subscriptions_by_channel_id(
@@ -110,3 +114,16 @@ class NWSTestSubscription(TestCase):
             InvalidNetID, nws._validate_subscriber_id, 'javerage@gmail.com')
         self.assertRaises(
             InvalidNetID, nws._validate_subscriber_id, 'javerage@')
+
+    def test_json_data(self):
+        subscription = self._setup_subscription()
+        data = subscription.json_data()
+
+        self.assertEquals(
+            data["Subscription"]["SubscriptionID"],
+            "c4597f93-0f62-4feb-ac88-af5f0329001f")
+        self.assertEquals(
+            data["Subscription"]["Endpoint"]["Protocol"], "Email")
+        self.assertEquals(
+            data["Subscription"]["Channel"]["ChannelID"],
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f")

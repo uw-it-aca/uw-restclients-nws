@@ -111,7 +111,7 @@ class Endpoint(models.Model):
 
 
 class Subscription(models.Model):
-    subscription_id = models.CharField(max_length=40)
+    subscription_id = models.CharField(max_length=40, default=None)
     subscription_uri = models.CharField(max_length=200)
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
@@ -129,9 +129,9 @@ class Subscription(models.Model):
                 "LastModified": self.last_modified.isoformat() if (
                     self.last_modified is not None) else None,
                 "ModifiedBy": self.modified_by,
-                "Channel": self.channel.json_data() if (
+                "Channel": self.channel.json_data()["Channel"] if (
                     self.channel is not None) else None,
-                "Endpoint": self.endpoint.json_data() if (
+                "Endpoint": self.endpoint.json_data()["Endpoint"] if (
                     self.endpoint is not None) else None
             }
         }
