@@ -245,6 +245,14 @@ class NWS(object):
         return self.search_subscriptions(
             channel_id=channel_id, subscriber_id=subscriber_id)
 
+    def get_subscriptions_by_channel_id_and_person_id(
+            self, channel_id, person_id):
+        """
+        Search for all subscriptions by a given channel and person
+        """
+        return self.search_subscriptions(
+            channel_id=channel_id, person_id=person_id)
+
     def get_subscription_by_channel_id_and_endpoint_id(
             self, channel_id, endpoint_id):
         """
@@ -262,9 +270,7 @@ class NWS(object):
         """
         Search for all subscriptions by parameters
         """
-        params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/subscription?%s" % urlencode(
-            params, doseq=True)
+        url = "/notification/v1/subscription?%s" % urlencode(kwargs)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -324,9 +330,7 @@ class NWS(object):
         """
         Search for all channels by parameters
         """
-        params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/channel?%s" % urlencode(
-            params, doseq=True)
+        url = "/notification/v1/channel?%s" % urlencode(kwargs)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
