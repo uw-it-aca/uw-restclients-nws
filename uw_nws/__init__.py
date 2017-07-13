@@ -245,6 +245,14 @@ class NWS(object):
         return self.search_subscriptions(
             channel_id=channel_id, subscriber_id=subscriber_id)
 
+    def get_subscriptions_by_channel_id_and_person_id(
+            self, channel_id, person_id):
+        """
+        Search for all subscriptions by a given channel and person
+        """
+        return self.search_subscriptions(
+            channel_id=channel_id, person_id=person_id)
+
     def get_subscription_by_channel_id_and_endpoint_id(
             self, channel_id, endpoint_id):
         """

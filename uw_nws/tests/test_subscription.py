@@ -62,6 +62,13 @@ class NWSTestSubscription(TestCase):
             "b779df7b-d6f6-4afb-8165-8dbe6232119f", "javerage")
         self.assertEquals(len(subscriptions), 5)
 
+    def test_subscriptions_channel_id_person_id(self):
+        nws = NWS()
+        subscriptions = nws.get_subscriptions_by_channel_id_and_person_id(
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f",
+            "9136CCB8F66711D5BE060004AC494FFE")
+        self.assertEquals(len(subscriptions), 5)
+
     def test_create_subscription(self):
         subscription = self._setup_subscription()
 
