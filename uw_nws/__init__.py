@@ -149,11 +149,11 @@ class NWS(object):
         :param endpoint: is the updated endpoint the client wants to update
         """
         self._validate_uuid(endpoint.endpoint_id)
-        self._validate_subscriber_id(endpoint.user)
+        self._validate_subscriber_id(endpoint.subscriber_id)
 
         url = "/notification/v1/endpoint/%s" % (endpoint.endpoint_id)
         response = NWS_DAO().putURL(
-            url, self._write_headers, endpoint.json_data())
+            url, self._write_headers, self._json_body(endpoint.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -164,15 +164,18 @@ class NWS(object):
         Create a new endpoint
         :param endpoint: is the new endpoint that the client wants to create
         """
-        self._validate_subscriber_id(endpoint.user)
+        self._validate_subscriber_id(endpoint.subscriber_id)
 
         url = "/notification/v1/endpoint"
         response = NWS_DAO().postURL(
-            url, self._write_headers, endpoint.json_data())
+            url, self._write_headers, self._json_body(endpoint.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
         return response.status
+
+    def create_new_endpoint(self, endpoint):
+        return self.create_endpoint(endpoint)
 
     def delete_subscription(self, subscription_id):
         """
@@ -198,8 +201,9 @@ class NWS(object):
             self._validate_uuid(subscription.subscription_id)
 
         if subscription.endpoint is not None:
-            if subscription.endpoint.user:
-                self._validate_subscriber_id(subscription.endpoint.user)
+            if subscription.endpoint.subscriber_id is not None:
+                self._validate_subscriber_id(
+                    subscription.endpoint.subscriber_id)
 
             if subscription.endpoint.endpoint_id is not None:
                 self._validate_uuid(subscription.endpoint.endpoint_id)
@@ -208,13 +212,16 @@ class NWS(object):
             self._validate_uuid(subscription.channel.channel_id)
 
         url = "/notification/v1/subscription"
-        response = NWS_DAO().postURL(
-            url, self._write_headers, subscription.json_data())
+        response = NWS_DAO().postURL(url, self._write_headers,
+                                     self._json_body(subscription.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
 
         return response.status
+
+    def create_new_subscription(self, subscription):
+        return self.create_subscription(subscription)
 
     def get_subscriptions_by_channel_id(self, channel_id):
         """
@@ -237,6 +244,14 @@ class NWS(object):
         """
         return self.search_subscriptions(
             channel_id=channel_id, subscriber_id=subscriber_id)
+
+    def get_subscriptions_by_channel_id_and_person_id(
+            self, channel_id, person_id):
+        """
+        Search for all subscriptions by a given channel and person
+        """
+        return self.search_subscriptions(
+            channel_id=channel_id, person_id=person_id)
 
     def get_subscription_by_channel_id_and_endpoint_id(
             self, channel_id, endpoint_id):
@@ -360,12 +375,15 @@ class NWS(object):
 
         url = "/notification/v1/person"
         response = NWS_DAO().postURL(
-            url, self._write_headers, person.json_data())
+            url, self._write_headers, self._json_body(person.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
 
         return response.status
+
+    def create_new_person(self, person):
+        return self.create_person(person)
 
     def update_person(self, person):
         """
@@ -380,7 +398,7 @@ class NWS(object):
 
         url = "/notification/v1/person/%s" % person.person_id
         response = NWS_DAO().putURL(
-            url, self._write_headers, person.json_data())
+            url, self._write_headers, self._json_body(person.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -394,8 +412,9 @@ class NWS(object):
         endpoint.endpoint_address = json_data["EndpointAddress"]
         endpoint.carrier = json_data.get("Carrier")
         endpoint.protocol = json_data["Protocol"]
-        endpoint.user = json_data["SubscriberID"]
+        endpoint.subscriber_id = json_data["SubscriberID"]
         endpoint.owner = json_data["OwnerID"]
+        endpoint.status = json_data["Status"]
         endpoint.active = json_data["Active"]
         endpoint.default = json_data.get("Default")
         if "Created" in json_data:
@@ -480,3 +499,6 @@ class NWS(object):
     def _validate_endpoint_protocol(self, protocol):
         if (protocol is None or not self._re_protocol.match(str(protocol))):
             raise InvalidEndpointProtocol(protocol)
+
+    def _json_body(self, json_data):
+        return json.dumps(json_data)

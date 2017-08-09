@@ -15,12 +15,15 @@ class NWSTestSubscription(TestCase):
         subscription.endpoint.endpoint_address = "javerage0@uw.edu"
         subscription.endpoint.protocol = "Email"
         subscription.endpoint.subscriber_id = "javerage@washington.edu"
-        subscription.endpoint.owner_id = "javerage@washington.edu"
-        subscription.endpoint.user = "javerage@washington.edu"
+        subscription.endpoint.owner = "javerage@washington.edu"
         subscription.channel = Channel()
         subscription.channel.channel_id = (
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
         return subscription
+
+    def test_default_subscription(self):
+        subscription = Subscription()
+        self.assertEquals(subscription.subscription_id, None)
 
     def test_subscriptions_channel_id(self):
         nws = NWS()
@@ -59,6 +62,13 @@ class NWSTestSubscription(TestCase):
             "b779df7b-d6f6-4afb-8165-8dbe6232119f", "javerage")
         self.assertEquals(len(subscriptions), 5)
 
+    def test_subscriptions_channel_id_person_id(self):
+        nws = NWS()
+        subscriptions = nws.get_subscriptions_by_channel_id_and_person_id(
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f",
+            "9136CCB8F66711D5BE060004AC494FFE")
+        self.assertEquals(len(subscriptions), 5)
+
     def test_create_subscription(self):
         subscription = self._setup_subscription()
 
@@ -72,7 +82,7 @@ class NWSTestSubscription(TestCase):
 
     def test_create_invalid_subscriber_id_subscription(self):
         subscription = self._setup_subscription()
-        subscription.endpoint.user = "-@#$ksjdsfkli13290243290490"
+        subscription.endpoint.subscriber_id = "-@#$ksjdsfkli13290243290490"
 
         nws = NWS()
         self.assertRaises(
@@ -111,3 +121,16 @@ class NWSTestSubscription(TestCase):
             InvalidNetID, nws._validate_subscriber_id, 'javerage@gmail.com')
         self.assertRaises(
             InvalidNetID, nws._validate_subscriber_id, 'javerage@')
+
+    def test_json_data(self):
+        subscription = self._setup_subscription()
+        data = subscription.json_data()
+
+        self.assertEquals(
+            data["Subscription"]["SubscriptionID"],
+            "c4597f93-0f62-4feb-ac88-af5f0329001f")
+        self.assertEquals(
+            data["Subscription"]["Endpoint"]["Protocol"], "Email")
+        self.assertEquals(
+            data["Subscription"]["Channel"]["ChannelID"],
+            "b779df7b-d6f6-4afb-8165-8dbe6232119f")

@@ -18,9 +18,19 @@ class NWSTestEndpoint(TestCase):
         self.assertEquals('222-222-3333', endpoint.endpoint_address)
         self.assertEquals('AT&T', endpoint.carrier)
         self.assertEquals('sms', endpoint.protocol)
-        self.assertEquals('javerage', endpoint.user)
+        self.assertEquals('javerage', endpoint.subscriber_id)
         self.assertEquals('sdf', endpoint.owner)
+        self.assertEquals('unconfirmed', endpoint.status)
         self.assertEquals(False, endpoint.active)
+
+        # Backward compatibility methods
+        self.assertEquals('javerage', endpoint.get_user_net_id())
+        self.assertEquals('sdf', endpoint.get_owner_net_id())
+
+        # JSON data
+        data = endpoint.json_data()
+        self.assertEquals(False, data['Endpoint']['Active'])
+        self.assertEquals('unconfirmed', data['Endpoint']['Status'])
 
     def test_endpoint_by_endpoint_id(self):
         nws = NWS()
@@ -115,7 +125,7 @@ class NWSTestEndpoint(TestCase):
 
         endpoint = nws.get_endpoint_by_endpoint_id(
             "780f2a49-2118-4969-9bef-bbd38c26970a")
-        endpoint.user = ""
+        endpoint.subscriber_id = ""
         self.assertRaises(InvalidNetID, nws.create_endpoint, endpoint)
 
     def test_update_endpoint(self):
@@ -134,7 +144,7 @@ class NWSTestEndpoint(TestCase):
 
         endpoint = nws.get_endpoint_by_endpoint_id(
             "780f2a49-2118-4969-9bef-bbd38c26970a")
-        endpoint.user = ""
+        endpoint.subscriber_id = ""
         self.assertRaises(
             InvalidNetID, nws.update_endpoint, endpoint)
 

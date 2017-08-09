@@ -7,6 +7,7 @@
         "EndpointID": "25b0db41-4323-11e2-a25f-0800200c9a66",
         "EndpointURI": "asdf132",
         "OwnerID": "javerage",
+        "Status": "unconfirmed",
         "EndpointAddress": "2065551234",
         "SubscriberID": "javerage"
     }
