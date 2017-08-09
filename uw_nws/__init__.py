@@ -448,17 +448,17 @@ class NWS(object):
         subscription = Subscription()
         subscription.subscription_id = json_data["SubscriptionID"]
         subscription.subscription_uri = json_data["SubscriptionURI"]
-        if "Created" in json_data:
+        if json_data.get("Created", None) is not None:
             subscription.created = dateutil.parser.parse(json_data["Created"])
-        if "LastModified" in json_data:
+        if json_data.get("LastModified", None) is not None:
             subscription.last_modified = dateutil.parser.parse(
                 json_data["LastModified"])
 
-        if "Endpoint" in json_data:
+        if json_data.get("Endpoint", None) is not None:
             subscription.endpoint = self._endpoint_from_json(
                 json_data["Endpoint"])
 
-        if "Channel" in json_data:
+        if json_data.get("Channel", None) is not None:
             subscription.channel = self._channel_from_json(
                 json_data["Channel"])
 
