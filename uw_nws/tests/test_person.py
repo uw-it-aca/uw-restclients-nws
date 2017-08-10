@@ -11,7 +11,7 @@ class NWSTestPerson(TestCase):
     def _assert_person_matches(self, person):
         self.assertEquals('javerage@washington.edu', person.surrogate_id)
         self.assertEquals('9136CCB8F66711D5BE060004AC494FFE', person.person_id)
-        self.assertTrue(len(person.endpoints))
+        self.assertEquals(len(person.endpoints), 2)
         self.assertTrue(person.default_endpoint() is not None)
 
     def test_person_by_surrogate_id(self):
@@ -37,6 +37,14 @@ class NWSTestPerson(TestCase):
         self.assertRaises(InvalidRegID, nws.get_person_by_uwregid, None)
         self.assertRaises(InvalidRegID, nws.get_person_by_uwregid,  "")
         self.assertRaises(InvalidRegID, nws.get_person_by_uwregid, 42)
+
+    def test_person_endpoints(self):
+        nws = NWS()
+        person1 = nws.get_person_by_uwregid("9136CCB8F66711D5BE060004AC494FFE")
+        self.assertEquals(len(person1.endpoints), 2)
+
+        person2 = nws.get_person_by_uwregid("9136CCB8F66711D5BE060004AC494FFE")
+        self.assertEquals(len(person2.endpoints), 2)
 
     def test_create_person(self):
         nws = NWS(override_user="javerage")
