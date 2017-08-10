@@ -8,8 +8,11 @@ class Person(models.Model):
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
-    attributes = {}
-    endpoints = []
+
+    def __init__(self, *args, **kwargs):
+        self.attributes = {}
+        self.endpoints = []
+        return super(Person, self).__init__(*args, **kwargs)
 
     def default_endpoint(self):
         for endpoint in self.endpoints:
@@ -44,7 +47,10 @@ class Channel(models.Model):
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
-    tags = {}
+
+    def __init__(self, *args, **kwargs):
+        self.tags = {}
+        return super(Channel, self).__init__(*args, **kwargs)
 
     def json_data(self):
         return {
@@ -116,8 +122,11 @@ class Subscription(models.Model):
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
-    channel = None
-    endpoint = None
+
+    def __init__(self, *args, **kwargs):
+        self.channel = None
+        self.endpoint = None
+        return super(Subscription, self).__init__(*args, **kwargs)
 
     def json_data(self):
         return {
