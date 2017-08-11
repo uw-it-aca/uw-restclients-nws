@@ -10,9 +10,9 @@ class Person(models.Model):
     modified_by = models.CharField(max_length=40)
 
     def __init__(self, *args, **kwargs):
+        super(Person, self).__init__(*args, **kwargs)
         self.attributes = {}
         self.endpoints = []
-        return super(Person, self).__init__(*args, **kwargs)
 
     def default_endpoint(self):
         for endpoint in self.endpoints:
@@ -49,8 +49,8 @@ class Channel(models.Model):
     modified_by = models.CharField(max_length=40)
 
     def __init__(self, *args, **kwargs):
+        super(Channel, self).__init__(*args, **kwargs)
         self.tags = {}
-        return super(Channel, self).__init__(*args, **kwargs)
 
     def json_data(self):
         return {
@@ -124,9 +124,9 @@ class Subscription(models.Model):
     modified_by = models.CharField(max_length=40)
 
     def __init__(self, *args, **kwargs):
+        super(Subscription, self).__init__(*args, **kwargs)
         self.channel = None
         self.endpoint = None
-        return super(Subscription, self).__init__(*args, **kwargs)
 
     def json_data(self):
         return {
