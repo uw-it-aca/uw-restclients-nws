@@ -31,7 +31,8 @@ class Person(models.Model):
                     self.last_modified is not None) else None,
                 "ModifiedBy": self.modified_by,
                 "Attributes": self.attributes,
-                "Endpoints": [e.json_data() for e in self.endpoints]
+                "Endpoints": [e.json_data()["Endpoint"] for e in (
+                    self.endpoints)]
             }
         }
 
