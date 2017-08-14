@@ -72,7 +72,7 @@ class NWSTestSubscription(TestCase):
     def test_create_subscription(self):
         subscription = self._setup_subscription()
 
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
         self.assertRaises(
             DataFailureException, nws.create_subscription, subscription)
 
@@ -97,7 +97,7 @@ class NWSTestSubscription(TestCase):
             InvalidUUID, nws.create_subscription, subscription)
 
     def test_delete_subscription(self):
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
         self.assertRaises(
             DataFailureException, nws.delete_subscription,
             "652236c6-a85a-4845-8dc5-3e518bec044c")

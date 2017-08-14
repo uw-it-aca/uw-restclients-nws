@@ -27,8 +27,8 @@ class NWS(object):
     The NWS object has methods for getting, updating, deleting information
     about channels, subscriptions, endpoints, and templates.
     """
-    def __init__(self, override_user=None):
-        self.override_user = override_user
+    def __init__(self, actas_user=None):
+        self.actas_user = actas_user
         self._re_uuid = re.compile(
             r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
         self._re_regid = re.compile(r'^[A-F0-9]{32}$', re.I)
@@ -36,9 +36,12 @@ class NWS(object):
             r'^([a-z]adm_)?[a-z][a-z0-9]{0,7}(@washington.edu)?$', re.I)
         self._re_protocol = re.compile(r'^(Email|SMS)$', re.I)
         self._read_headers = {"Accept": "application/json"}
-        self._write_headers = {"Content-Type": "application/json"}
-        if self.override_user is not None:
-            self._write_headers["X_UW_ACT_AS"] = self.override_user
+
+    def _write_headers(self):
+        write_headers = {"Content-Type": "application/json"}
+        if self.actas_user is not None:
+            write_headers["X_UW_ACT_AS"] = self.actas_user
+        return write_headers
 
     def get_endpoint_by_endpoint_id(self, endpoint_id):
         """
@@ -137,7 +140,7 @@ class NWS(object):
         self._validate_uuid(endpoint_id)
 
         url = "/notification/v1/endpoint/%s" % (endpoint_id)
-        response = NWS_DAO().deleteURL(url, self._write_headers)
+        response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -153,7 +156,7 @@ class NWS(object):
 
         url = "/notification/v1/endpoint/%s" % (endpoint.endpoint_id)
         response = NWS_DAO().putURL(
-            url, self._write_headers, self._json_body(endpoint.json_data()))
+            url, self._write_headers(), self._json_body(endpoint.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -168,7 +171,7 @@ class NWS(object):
 
         url = "/notification/v1/endpoint"
         response = NWS_DAO().postURL(
-            url, self._write_headers, self._json_body(endpoint.json_data()))
+            url, self._write_headers(), self._json_body(endpoint.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
@@ -185,7 +188,7 @@ class NWS(object):
         self._validate_uuid(subscription_id)
 
         url = "/notification/v1/subscription/%s" % (subscription_id)
-        response = NWS_DAO().deleteURL(url, self._write_headers)
+        response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -212,7 +215,7 @@ class NWS(object):
             self._validate_uuid(subscription.channel.channel_id)
 
         url = "/notification/v1/subscription"
-        response = NWS_DAO().postURL(url, self._write_headers,
+        response = NWS_DAO().postURL(url, self._write_headers(),
                                      self._json_body(subscription.json_data()))
 
         if response.status != 201:
@@ -375,7 +378,7 @@ class NWS(object):
 
         url = "/notification/v1/person"
         response = NWS_DAO().postURL(
-            url, self._write_headers, self._json_body(person.json_data()))
+            url, self._write_headers(), self._json_body(person.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
@@ -398,7 +401,7 @@ class NWS(object):
 
         url = "/notification/v1/person/%s" % person.person_id
         response = NWS_DAO().putURL(
-            url, self._write_headers, self._json_body(person.json_data()))
+            url, self._write_headers(), self._json_body(person.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
