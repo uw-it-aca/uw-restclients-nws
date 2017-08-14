@@ -47,7 +47,7 @@ class NWSTestPerson(TestCase):
         self.assertEquals(len(person2.endpoints), 2)
 
     def test_create_person(self):
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
         person = nws.get_person_by_surrogate_id("javerage@washington.edu")
 
         self.assertRaises(DataFailureException, nws.create_person, person)
@@ -56,7 +56,7 @@ class NWSTestPerson(TestCase):
         self.assertRaises(InvalidNetID, nws.create_person, person)
 
     def test_update_person(self):
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
 
         person = nws.get_person_by_surrogate_id("javerage@washington.edu")
         self.assertRaises(DataFailureException,  nws.update_person, person)

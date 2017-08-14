@@ -114,7 +114,7 @@ class NWSTestEndpoint(TestCase):
             "780f2a49-2118-4969-9bef-bbd38c26970a")
 
     def test_create_endpoint(self):
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
         endpoint = nws.get_endpoint_by_endpoint_id(
             "780f2a49-2118-4969-9bef-bbd38c26970a")
         endpoint.endpoint_id = None
@@ -129,7 +129,7 @@ class NWSTestEndpoint(TestCase):
         self.assertRaises(InvalidNetID, nws.create_endpoint, endpoint)
 
     def test_update_endpoint(self):
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
         endpoint = nws.get_endpoint_by_endpoint_id(
             "780f2a49-2118-4969-9bef-bbd38c26970a")
 
@@ -149,7 +149,7 @@ class NWSTestEndpoint(TestCase):
             InvalidNetID, nws.update_endpoint, endpoint)
 
     def test_delete_endpoint(self):
-        nws = NWS(override_user="javerage")
+        nws = NWS(actas_user="javerage")
         self.assertRaises(
             DataFailureException, nws.delete_endpoint,
             "780f2a49-2118-4969-9bef-bbd38c26970a")
