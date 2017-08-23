@@ -475,6 +475,7 @@ class NWS(object):
         if json_data.get("LastModified", None) is not None:
             subscription.last_modified = dateutil.parser.parse(
                 json_data["LastModified"])
+        subscription.modified_by = json_data.get("ModifiedBy")
 
         if json_data.get("Endpoint", None) is not None:
             subscription.endpoint = self._endpoint_from_json(
