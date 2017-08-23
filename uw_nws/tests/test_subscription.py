@@ -11,6 +11,7 @@ class NWSTestSubscription(TestCase):
     def _setup_subscription(self):
         subscription = Subscription()
         subscription.subscription_id = "c4597f93-0f62-4feb-ac88-af5f0329001f"
+        subscription.modified_by = "javerage@washington.edu"
         subscription.endpoint = Endpoint()
         subscription.endpoint.endpoint_address = "javerage0@uw.edu"
         subscription.endpoint.protocol = "Email"
@@ -134,3 +135,5 @@ class NWSTestSubscription(TestCase):
         self.assertEquals(
             data["Subscription"]["Channel"]["ChannelID"],
             "b779df7b-d6f6-4afb-8165-8dbe6232119f")
+        self.assertEquals(data["Subscription"]["ModifiedBy"],
+                          "javerage@washington.edu")
