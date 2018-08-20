@@ -2,18 +2,16 @@ sudo: false
 language: python
 python:
 - '2.7'
-- '3.4'
-- '3.5'
 - '3.6'
 before_script:
 - pip install -e .
-- pip install pep8
+- pip install pycodestyle
 - pip install nose2
 - pip install coverage
 - pip install commonconf
 - pip install python-coveralls
 script:
-- pep8 --exclude=uw_nws/tests uw_nws
+- pycodestyle --exclude=uw_nws/tests uw_nws
 - coverage run uw_nws/test.py -v
 after_script:
 - coveralls
@@ -28,4 +26,4 @@ deploy:
     secure: mpKBUURn+Py130wRjgYFPCGZSuOobV+8sRP9XtMSs/8+UTvrlzOhmrUE+KVtABYUI2WIceo3uRqb6LmunPVjwcfiQIzcqJ+AdRcZSY6Is1Dqv1xFT32F6zyQHPN/Rn5AXR+xudV+/CMw3E+Au6tI74n4Q8x+9Qu8sd4pFoW5or/+tJ46svrJ7/jxhEkiIau/BTOxD0bDbk83ovdqsJhT5TLveeJN41UC2o3mio4D3XiMqhHeizz7+T1cD9Qs/uE5F3XPMHrOIpBYCoNEk/+x8oKmKRKaWf3/ZRbM8mZ4xan5VjClbkbYDskAOdoblGGODVJwVGLRc3iN7aSuEaaNmx/RfoojzQezVZD0PjM0qtY4y68rQ7FRpGwdFyXUL0UWHkfioO2NNkiG2MAUrIJ0x6YFAXNoIoXTFkzQu6VRhm/f1ZjY1pW6B+PVxnvbspinw709pNcFa2tRW6MyfrgOmlgBL8yCFU89zYmnvwS4jbUzwUuUNISIIb1uCt0yHSUycnpkhZKHOZ/X4oOFfnSjtfqusgCVB1QSg4usRSrcclmbXTwA+l3b+Ctjsw2fXdWStQBNFTlvL18lUiLllEaKIZi1OGUwBISL9wwYZNpoU9i1bT2G2QamIhzILRwzeudJC3geOWjpGlNK5WE7L3/PTUucjIxlAXJhyORgkvzaqmE=
   on:
     tags: true
-    python: '3.5'
+    python: '3.6'
