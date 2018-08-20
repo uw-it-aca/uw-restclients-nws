@@ -408,6 +408,26 @@ class NWS(object):
 
         return response.status
 
+    def create_new_message(self, dispatch):
+        """
+        Create a new dispatch
+        :param dispatch:
+        is the new dispatch that the client wants to create
+        """
+
+        self._validate_uuid(dispatch.dispatch_id)
+
+        #Create new dispatch
+        url = "/notification/v1/dispatch"
+
+        post_response = NWS_DAO().postURL(
+                url, self._write_headers(), self._json_body(dispatch.json_data()))
+
+        if post_response.status != 200:
+            raise DataFailureException(url, post_response.status, post_response.data)
+
+	return post_response.status
+
     def _endpoint_from_json(self, json_data):
         endpoint = Endpoint()
         endpoint.endpoint_id = json_data["EndpointID"]

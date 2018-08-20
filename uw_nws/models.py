@@ -145,3 +145,21 @@ class Subscription(models.Model):
                     self.endpoint is not None) else None
             }
         }
+
+class Dispatch(models.Model):
+    dispatch_id = models.CharField(max_length=40, default=None)
+    message_type = models.CharField(max_length=40)
+    directive = models.CharField(max_length=20)
+
+    def __init__(self, *args, **kwargs):
+        self.content = {}
+
+    def json_data(self):
+        return {
+            "Dispatch": {
+                "DispatchID": self.dispatch_id
+                "MessageType": self.message_type,
+                "Content": self.content,
+                "Directive": self.directive
+            }
+        }
