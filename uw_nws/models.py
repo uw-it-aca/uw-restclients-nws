@@ -163,3 +163,39 @@ class Dispatch(models.Model):
                 "Directive": self.directive
             }
         }
+
+class MessageType(models.Model):
+    message_type_id = models.CharField(max_length=40, default=None)
+    message_type_uri = models.CharField(max_length=200)
+    surrogate_id = models.CharField(max_length=40)
+    content_type = models.CharField(max_length=40)
+    destination_id = models.CharField(max_length=80)
+    destination_type = models.CharField(max_length=40)
+    from_dispatcher = models.CharField(max_length=40, default=None)
+    to_endpoint = models.CharField(max_length=200)
+    subject = models.CharField(max_length=80)
+    body = models.CharField(max_length=200)
+    short = models.CharField(max_length=80)
+    created = models.DateTimeField()
+    last_modified = models.DateTimeField()
+
+    def json_data(self):
+        return {
+            "MessageType": {
+                "MessageTypeID": self.message_type_id,
+                "MessageTypeURI": self.message_type_uri
+                "SurrogateID": self.surrogate_id,
+                "ContentType": self.content_type,
+                "DestinationID": self.destination_id,
+                "DestinationType": self.destination_type,
+                "From": self.from_dispatcher,
+                "To": self.to_endpoint,
+                "Subject": self.subject,
+                "Body": self.body,
+                "Short": self.short,
+                "Created": self.created.isoformat() if (
+                    self.created is not None) else None,
+                "LastModified": self.last_modified.isoformat() if (
+                    self.last_modified is not None) else None,
+            }
+        }
