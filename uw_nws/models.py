@@ -148,19 +148,32 @@ class Subscription(models.Model):
 
 class Dispatch(models.Model):
     dispatch_id = models.CharField(max_length=40, default=None)
+    dispatch_uri = models.CharField(max_length=200)
     message_type = models.CharField(max_length=40)
+    content = models.CharField(max_length=80)
     directive = models.CharField(max_length=20)
+    number_of_recipients = models.IntegerField()
+    locked = models.BooleanField()
+    lock_id = models.CharField(max_length=40)
+    locked_on = models.DateTimeField()
+    locked_by = models.CharField(max_length=40)
 
     def __init__(self, *args, **kwargs):
-        self.content = {}
+        self.message = {}
 
     def json_data(self):
         return {
             "Dispatch": {
-                "DispatchID": self.dispatch_id
-                "MessageType": self.message_type,
+                "DispatchID": self.dispatch_id,
+                "DispatchURI": self.dispatch_uri,
+                "Message": self.message,
                 "Content": self.content,
-                "Directive": self.directive
+                "Directive": self.directive,
+                "NumberOfRecipients": self.number_of_recipients,
+                "Locked": self.locked,
+                "LockID": self.lock_id,
+                "LockedOn": self.locked_on,
+                "LockedBy": self.locked_by
             }
         }
 
@@ -183,7 +196,7 @@ class MessageType(models.Model):
         return {
             "MessageType": {
                 "MessageTypeID": self.message_type_id,
-                "MessageTypeURI": self.message_type_uri
+                "MessageTypeURI": self.message_type_uri,
                 "SurrogateID": self.surrogate_id,
                 "ContentType": self.content_type,
                 "DestinationID": self.destination_id,
@@ -196,6 +209,6 @@ class MessageType(models.Model):
                 "Created": self.created.isoformat() if (
                     self.created is not None) else None,
                 "LastModified": self.last_modified.isoformat() if (
-                    self.last_modified is not None) else None,
+                    self.last_modified is not None) else None
             }
         }

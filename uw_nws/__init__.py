@@ -4,7 +4,7 @@ This is the interface for interacting with the Notifications Web Service.
 
 from restclients_core.exceptions import (
     DataFailureException, InvalidNetID, InvalidRegID)
-from uw_nws.exceptions import InvalidUUID, InvalidEndpointProtocol
+from uw_nws.exceptions import InvalidUUID, InvalidEndpointProtocol, InvalidSurrogateID
 from uw_nws.dao import NWS_DAO
 from uw_nws.models import Person, Channel, Endpoint, Subscription, Dispatch, MessageType
 try:
