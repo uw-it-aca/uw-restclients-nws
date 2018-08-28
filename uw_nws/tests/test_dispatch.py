@@ -1,10 +1,11 @@
 from unittest import TestCase
 from uw_nws import NWS
-from uw_nws.models import Person
+from uw_nws.models import Dispatch
 from uw_nws.utilities import fdao_nws_override
 from restclients_core.exceptions import (
     DataFailureException)
 from uw_nws.exceptions import InvalidUUID
+
 
 @fdao_nws_override
 class NWSTestDispatch(TestCase):
@@ -12,30 +13,12 @@ class NWSTestDispatch(TestCase):
         dispatch = Dispatch()
         dispatch.dispatch_id = "8b77b7b8-604e-4854-9c8d-872214fe8ae7"
         dispatch.message_type = "uw_student_courseavailable"
-        dispatch.content = {
-            Event: {
-                EventID:"ASD234232DS1",
-                Href:null,
-                LastModified:"2012-10-28T00:08:01.988Z",
-                Section: {
-                    Course: {
-                        "CourseNumber":"100",
-                        "CurriculumAbbreviation":"CSE",
-                        "Quarter":"autumn",
-                        "Year":"2012"
-                    },
-                    Href:"/student/v4/course/2012,autumn,CSE,100/W.json",
-                    SLN:"12345",
-                    SectionID:"W"
-                },
-                SpaceAvailable:1
-            }
-	}
-	return dispatch
+        dispatch.content = {}
+        return dispatch
 
     def test_default_dispatch(self):
         dispatch = Dispatch()
-	    self.assertEquals(dispatch.dispatch_id, None)
+        self.assertEquals(dispatch.dispatch_id, None)
 
     def test_create_dispatch(self):
         dispatch = self._setup_dispatch()

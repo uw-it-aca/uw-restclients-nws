@@ -1,17 +1,19 @@
 from unittest import TestCase
 from uw_nws import NWS
-from uw_nws.models import Person
+from uw_nws.models import MessageType
 from uw_nws.utilities import fdao_nws_override
 from restclients_core.exceptions import (
     DataFailureException, InvalidNetID, InvalidRegID)
 from uw_nws.exceptions import InvalidUUID, InvalidSurrogateID
+
 
 @fdao_nws_override
 class NWSTestMessageType(TestCase):
     def _setup_message_type(self):
         message_type = MessageType()
         message_type.message_type_id = "d097a66a-23bb-4b2b-bb44-01fe1d11aab8"
-        message_type.message_type_uri = "/notification/v1/message-type/d097a66a-23bb-4b2b-bb44-01fe1d11aab0"
+        message_type.message_type_uri = ("/notification/v1/message-type/d097"
+                                         "a66a-23bb-4b2b-bb44-01fe1d11aab0")
         message_type.surrogate_id = "uw_student_courseavailable"
         message_type.content_type = "application/json"
         message_type.desination_type = "channel"
@@ -23,21 +25,15 @@ class NWSTestMessageType(TestCase):
 
     def test_message_type_by_id(self):
         nws = NWS()
-        message_type = nws.get_message_type_by_id("d097a66a-23bb-4b2b-bb44-01fe1d11aab8")
-        self.assertEquals(len(message_type), 1)
+        message_type = nws.get_message_type_by_id(
+            "d097a66a-23bb-4b2b-bb44-01fe1d11aab0")
+        self.assertEquals(
+                         message_type.message_type_id,
+                         "d097a66a-23bb-4b2b-bb44-01fe1d11aab0")
 
         self.assertRaises(
             DataFailureException,
-            nws.get_message_type_by_id, "d097a66a-23bb-4b2b-bb44-01fe1d11aXXX")
-
-    def test_message_type_by_surrogate_id(self):
-        nws = NWS()
-        message_type = nws.get_message_type_by_surrogate_id("uw_student_courseavailable")
-        self.assertTrue(len(message_type) > 1)
-
-        self.assertRaises(
-            InvalidUUID,
-            nws.get_message_type_by_surrogate_id, "uc_fake_surrogate")
+            nws.get_message_type_by_id, "00000000-23bb-4b2b-bb44-01fe1d11aab0")
 
     def test_delete_message_type(self):
         nws = NWS(actas_user="javerage")
@@ -53,7 +49,8 @@ class NWSTestMessageType(TestCase):
 
     def test_update_message_type(self):
         nws = NWS(actas_user="javerage")
-        message_type =  nws.get_message_type_by_id("d097a66a-23bb-4b2b-bb44-01fe1d11aab8")
+        message_type = nws.get_message_type_by_id(
+            "d097a66a-23bb-4b2b-bb44-01fe1d11aab8")
 
         self.assertRaises(
             DataFailureException, nws.update_message_type, message_type)
@@ -68,11 +65,13 @@ class NWSTestMessageType(TestCase):
         nws._validate_message_type_surrogate("uw_direct_notification")
 
         self.assertRaises(
-            InvalidSurrogateID, nws._validate_message_type_surrogate, 'uc_fake_surrogate')
+            InvalidSurrogateID, nws._validate_message_type_surrogate,
+            'uc_fake_surrogate')
         self.assertRaises(
             InvalidSurrogateID, nws._validate_message_type_surrogate, 'uw')
         self.assertRaises(
-            InvalidSurrogateID, nws._validate_message_type_surrogate, 'd097a66a-23bb-4b2b-bb44-01fe1d11aab8')
+            InvalidSurrogateID, nws._validate_message_type_surrogate,
+            'd097a66a-23bb-4b2b-bb44-01fe1d11aab8')
         self.assertRaises(
             InvalidSurrogateID, nws._validate_message_type_surrogate, 'uw_')
 
@@ -85,7 +84,8 @@ class NWSTestMessageType(TestCase):
             "d097a66a-23bb-4b2b-bb44-01fe1d11aab8")
         self.assertEquals(
             data["MessageType"]["MessageTypeURI"],
-            "/notification/v1/message-type/d097a66a-23bb-4b2b-bb44-01fe1d11aab0")
+            "/notification/v1/message-type/" +
+            "d097a66a-23bb-4b2b-bb44-01fe1d11aab0")
         self.assertEquals(
             data["MessageType"]["SurrogateID"],
             "uw_student_courseavailable")

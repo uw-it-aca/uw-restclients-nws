@@ -146,6 +146,7 @@ class Subscription(models.Model):
             }
         }
 
+
 class Dispatch(models.Model):
     dispatch_id = models.CharField(max_length=40, default=None)
     dispatch_uri = models.CharField(max_length=200)
@@ -176,6 +177,7 @@ class Dispatch(models.Model):
                 "LockedBy": self.locked_by
             }
         }
+
 
 class MessageType(models.Model):
     message_type_id = models.CharField(max_length=40, default=None)

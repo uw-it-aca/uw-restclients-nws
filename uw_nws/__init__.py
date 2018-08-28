@@ -4,9 +4,11 @@ This is the interface for interacting with the Notifications Web Service.
 
 from restclients_core.exceptions import (
     DataFailureException, InvalidNetID, InvalidRegID)
-from uw_nws.exceptions import InvalidUUID, InvalidEndpointProtocol, InvalidSurrogateID
+from uw_nws.exceptions import (
+    InvalidUUID, InvalidEndpointProtocol, InvalidSurrogateID)
 from uw_nws.dao import NWS_DAO
-from uw_nws.models import Person, Channel, Endpoint, Subscription, Dispatch, MessageType
+from uw_nws.models import (
+    Person, Channel, Endpoint, Subscription, Dispatch, MessageType)
 try:
     from urllib.parse import quote, urlencode
 except ImportError:
@@ -35,7 +37,8 @@ class NWS(object):
         self._re_subscriber_id = re.compile(
             r'^([a-z]adm_)?[a-z][a-z0-9]{0,7}(@washington.edu)?$', re.I)
         self._re_protocol = re.compile(r'^(Email|SMS)$', re.I)
-        self._re_message_type_surrogate = re.compile(r'^uw_[a-z0-9|_]{1,37}$', re.I)
+        self._re_message_type_surrogate = re.compile(
+            r'^uw_[a-z0-9|_]{1,37}$', re.I)
         self._read_headers = {"Accept": "application/json"}
 
     def _write_headers(self):
@@ -417,13 +420,14 @@ class NWS(object):
         """
         self._validate_uuid(dispatch.dispatch_id)
 
-        #Create new dispatch
+        # Create new dispatch
         url = "/notification/v1/dispatch"
         post_response = NWS_DAO().postURL(
-                url, self._write_headers(), self._json_body(dispatch.json_data()))
+            url, self._write_headers(), self._json_body(dispatch.json_data()))
 
         if post_response.status != 200:
-            raise DataFailureException(url, post_response.status, post_response.data)
+            raise DataFailureException(
+                url, post_response.status, post_response.data)
         return post_response.status
 
     def delete_dispatch(self, dispatch_id):
@@ -443,57 +447,42 @@ class NWS(object):
     def get_message_type_by_id(self, message_type_id):
         """
         Get a message type by message type ID
-        :param message_type_id: is the message type that the client wants to retrieve
+        :param message_type_id: is the message type that
+                                the client wants to retrieve
         """
         self._validate_uuid(message_type_id)
 
         url = "/notification/v1/message-type/%s" % (message_type_id)
-        response = NWS_DAO().getURL(url, self._read_headers())
-
-        if response.status != 200:
-            raise DataFailureException(url, response.status, repsonse.data)
-
-        data = json.loads(response.data)
-        return self._message_type_from_json(data.get("MessageType"))
-
-    def get_message_type_by_surrogate_id(self, surrogate_id):
-        """
-        Get a message type (list) by surrogate id
-        :param surrogate_id: is the surrogate id of the message
-                             type that the client wants to retrieve
-        """
-        url = "/notification/v1/message-type?surrogate_id=%s" % surrogate_id
-
-        response = NWS_DAO().getURL(url, self._read_headers)
-
+        response = NWS_DAO().getURL(url, self._write_headers())
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
 
         data = json.loads(response.data)
-        try:
-            return self._message_type_from_json(data.get("MessageTypes")[0])
-        except IndexError
-            raise DataFailureException(url, 404, "No message types found")
+        return self._message_type_from_json(data.get("MessageType"))
 
     def update_message_type(self, message_type):
         """
         Update an existing message type
-        :param message_type: is the updated message type that the client wants to update
+        :param message_type: is the updated message type that the
+                             client wants to update
         """
         self._validate_uuid(message_type.message_type_id)
 
-        url = "/notification/v1/message-type/%s" % (message_type.message_type_id)
+        url = "/notification/v1/message-type/%s" % (
+            message_type.message_type_id)
         response = NWS_DAO().putURL(
-            url, self._write_headers(), self._json_body(message_type.json_data()))
+            url, self._write_headers(), self._json_body(
+                message_type.json_data()))
 
         if response.status != 204:
-            raise DataFailureException(url, response.status. response.data)
+            raise DataFailureException(url, response.status, response.data)
         return response.status
 
     def delete_message_type(self, message_type_id):
         """
         Delete an existing message type
-        :param message_type_id: is the id of the message type the client wants to delete
+        :param message_type_id: is the id of the message type the
+                                client wants to delete
         """
         self._validate_uuid(message_type_id)
 
@@ -597,10 +586,12 @@ class NWS(object):
         message_type.body = json_data["Body"]
         message_type.short = json_data["Short"]
         if "Created" in json_data:
-             channel.created = dateutil.parser.parse(json_data["Created"])
+            message_type.created = dateutil.parser.parse(json_data["Created"])
         if "LastModified" in json_data:
-             channel.last_modified = dateutil.parser.parse(
+            message_type.last_modified = dateutil.parser.parse(
                  json_data["LastModified"])
+
+        return message_type
 
     def _validate_uuid(self, uuid):
         if (uuid is None or not self._re_uuid.match(str(uuid))):
