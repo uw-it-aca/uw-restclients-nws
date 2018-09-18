@@ -9,15 +9,11 @@ from uw_nws.exceptions import (
 from uw_nws.dao import NWS_DAO
 from uw_nws.models import (
     Person, Channel, Endpoint, Subscription, Dispatch, MessageType)
-try:
-    from urllib.parse import quote, urlencode
-except ImportError:
-    from urllib import quote, urlencode
+from urllib.parse import quote, urlencode
 from datetime import datetime, time
 import dateutil.parser
 import json
 import re
-
 
 MANAGED_ATTRIBUTES = (
     'DispatchedEmailCount', 'DispatchedTextMessageCount',
@@ -53,7 +49,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/%s" % (endpoint_id)
+        url = "/notification/v1/endpoint/{}".format(endpoint_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
         if response.status != 200:
@@ -70,7 +66,7 @@ class NWS(object):
         self._validate_subscriber_id(subscriber_id)
         self._validate_endpoint_protocol(protocol)
 
-        url = "/notification/v1/endpoint?subscriber_id=%s&protocol=%s" % (
+        url = "/notification/v1/endpoint?subscriber_id={}&protocol={}".format(
             subscriber_id, protocol)
 
         response = NWS_DAO().getURL(url, self._read_headers)
@@ -88,7 +84,8 @@ class NWS(object):
         """
         Get an endpoint by address
         """
-        url = "/notification/v1/endpoint?endpoint_address=%s" % endpoint_addr
+        url = "/notification/v1/endpoint?endpoint_address={}".format(
+            endpoint_addr)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -107,7 +104,8 @@ class NWS(object):
         """
         self._validate_subscriber_id(subscriber_id)
 
-        url = "/notification/v1/endpoint?subscriber_id=%s" % (subscriber_id)
+        url = "/notification/v1/endpoint?subscriber_id={}".format(
+            subscriber_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -128,7 +126,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/%s/verification" % (endpoint_id)
+        url = "/notification/v1/endpoint/{}/verification".format(endpoint_id)
 
         response = NWS_DAO().postURL(url, None, None)
 
@@ -143,7 +141,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/%s" % (endpoint_id)
+        url = "/notification/v1/endpoint/{}".format(endpoint_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -158,7 +156,7 @@ class NWS(object):
         self._validate_uuid(endpoint.endpoint_id)
         self._validate_subscriber_id(endpoint.subscriber_id)
 
-        url = "/notification/v1/endpoint/%s" % (endpoint.endpoint_id)
+        url = "/notification/v1/endpoint/{}".format(endpoint.endpoint_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(endpoint.json_data()))
 
@@ -191,7 +189,7 @@ class NWS(object):
         """
         self._validate_uuid(subscription_id)
 
-        url = "/notification/v1/subscription/%s" % (subscription_id)
+        url = "/notification/v1/subscription/{}".format(subscription_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -278,8 +276,8 @@ class NWS(object):
         Search for all subscriptions by parameters
         """
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/subscription?%s" % urlencode(
-            params, doseq=True)
+        url = "/notification/v1/subscription?{}".format(
+            urlencode(params, doseq=True))
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -298,7 +296,7 @@ class NWS(object):
         """
         self._validate_uuid(channel_id)
 
-        url = "/notification/v1/channel/%s" % (channel_id)
+        url = "/notification/v1/channel/{}".format(channel_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -340,8 +338,8 @@ class NWS(object):
         Search for all channels by parameters
         """
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/channel?%s" % urlencode(
-            params, doseq=True)
+        url = "/notification/v1/channel?{}".format(
+            urlencode(params, doseq=True))
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -363,7 +361,7 @@ class NWS(object):
         return self._get_person_by_id(uwregid)
 
     def _get_person_by_id(self, identifier):
-        url = "/notification/v1/person/%s" % identifier
+        url = "/notification/v1/person/{}".format(identifier)
 
         response = NWS_DAO().getURL(url, {"Accept": "application/json"})
 
@@ -403,7 +401,7 @@ class NWS(object):
         for attr in MANAGED_ATTRIBUTES:
             person.attributes.pop(attr, None)
 
-        url = "/notification/v1/person/%s" % person.person_id
+        url = "/notification/v1/person/{}".format(person.person_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(person.json_data()))
 
@@ -437,7 +435,7 @@ class NWS(object):
         """
         self._validate_uuid(dispatch_id)
 
-        url = "/notification/v1/dispatch/%s" % (dispatch_id)
+        url = "/notification/v1/dispatch/{}".format(dispatch_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -452,7 +450,7 @@ class NWS(object):
         """
         self._validate_uuid(message_type_id)
 
-        url = "/notification/v1/message-type/%s" % (message_type_id)
+        url = "/notification/v1/message-type/{}".format(message_type_id)
         response = NWS_DAO().getURL(url, self._write_headers())
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -468,7 +466,7 @@ class NWS(object):
         """
         self._validate_uuid(message_type.message_type_id)
 
-        url = "/notification/v1/message-type/%s" % (
+        url = "/notification/v1/message-type/{}".format(
             message_type.message_type_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(
@@ -486,7 +484,7 @@ class NWS(object):
         """
         self._validate_uuid(message_type_id)
 
-        url = "/notification/v1/message-type/%s" % (message_type_id)
+        url = "/notification/v1/message-type/{}".format(message_type_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
