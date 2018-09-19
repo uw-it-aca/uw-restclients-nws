@@ -4,18 +4,16 @@ This is the interface for interacting with the Notifications Web Service.
 
 from restclients_core.exceptions import (
     DataFailureException, InvalidNetID, InvalidRegID)
-from uw_nws.exceptions import InvalidUUID, InvalidEndpointProtocol
+from uw_nws.exceptions import (
+    InvalidUUID, InvalidEndpointProtocol, InvalidSurrogateID)
 from uw_nws.dao import NWS_DAO
-from uw_nws.models import Person, Channel, Endpoint, Subscription
-try:
-    from urllib.parse import quote, urlencode
-except ImportError:
-    from urllib import quote, urlencode
+from uw_nws.models import (
+    Person, Channel, Endpoint, Subscription, Dispatch, MessageType)
+from urllib.parse import quote, urlencode
 from datetime import datetime, time
 import dateutil.parser
 import json
 import re
-
 
 MANAGED_ATTRIBUTES = (
     'DispatchedEmailCount', 'DispatchedTextMessageCount',
@@ -35,6 +33,8 @@ class NWS(object):
         self._re_subscriber_id = re.compile(
             r'^([a-z]adm_)?[a-z][a-z0-9]{0,7}(@washington.edu)?$', re.I)
         self._re_protocol = re.compile(r'^(Email|SMS)$', re.I)
+        self._re_message_type_surrogate = re.compile(
+            r'^uw_[a-z0-9|_]{1,37}$', re.I)
         self._read_headers = {"Accept": "application/json"}
 
     def _write_headers(self):
@@ -49,7 +49,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/%s" % (endpoint_id)
+        url = "/notification/v1/endpoint/{}".format(endpoint_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
         if response.status != 200:
@@ -66,7 +66,7 @@ class NWS(object):
         self._validate_subscriber_id(subscriber_id)
         self._validate_endpoint_protocol(protocol)
 
-        url = "/notification/v1/endpoint?subscriber_id=%s&protocol=%s" % (
+        url = "/notification/v1/endpoint?subscriber_id={}&protocol={}".format(
             subscriber_id, protocol)
 
         response = NWS_DAO().getURL(url, self._read_headers)
@@ -84,7 +84,8 @@ class NWS(object):
         """
         Get an endpoint by address
         """
-        url = "/notification/v1/endpoint?endpoint_address=%s" % endpoint_addr
+        url = "/notification/v1/endpoint?endpoint_address={}".format(
+            endpoint_addr)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -103,7 +104,8 @@ class NWS(object):
         """
         self._validate_subscriber_id(subscriber_id)
 
-        url = "/notification/v1/endpoint?subscriber_id=%s" % (subscriber_id)
+        url = "/notification/v1/endpoint?subscriber_id={}".format(
+            subscriber_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -124,7 +126,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/%s/verification" % (endpoint_id)
+        url = "/notification/v1/endpoint/{}/verification".format(endpoint_id)
 
         response = NWS_DAO().postURL(url, None, None)
 
@@ -139,7 +141,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/%s" % (endpoint_id)
+        url = "/notification/v1/endpoint/{}".format(endpoint_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -154,7 +156,7 @@ class NWS(object):
         self._validate_uuid(endpoint.endpoint_id)
         self._validate_subscriber_id(endpoint.subscriber_id)
 
-        url = "/notification/v1/endpoint/%s" % (endpoint.endpoint_id)
+        url = "/notification/v1/endpoint/{}".format(endpoint.endpoint_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(endpoint.json_data()))
 
@@ -187,7 +189,7 @@ class NWS(object):
         """
         self._validate_uuid(subscription_id)
 
-        url = "/notification/v1/subscription/%s" % (subscription_id)
+        url = "/notification/v1/subscription/{}".format(subscription_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -274,8 +276,8 @@ class NWS(object):
         Search for all subscriptions by parameters
         """
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/subscription?%s" % urlencode(
-            params, doseq=True)
+        url = "/notification/v1/subscription?{}".format(
+            urlencode(params, doseq=True))
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -294,7 +296,7 @@ class NWS(object):
         """
         self._validate_uuid(channel_id)
 
-        url = "/notification/v1/channel/%s" % (channel_id)
+        url = "/notification/v1/channel/{}".format(channel_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -336,8 +338,8 @@ class NWS(object):
         Search for all channels by parameters
         """
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/channel?%s" % urlencode(
-            params, doseq=True)
+        url = "/notification/v1/channel?{}".format(
+            urlencode(params, doseq=True))
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -359,7 +361,7 @@ class NWS(object):
         return self._get_person_by_id(uwregid)
 
     def _get_person_by_id(self, identifier):
-        url = "/notification/v1/person/%s" % identifier
+        url = "/notification/v1/person/{}".format(identifier)
 
         response = NWS_DAO().getURL(url, {"Accept": "application/json"})
 
@@ -399,13 +401,94 @@ class NWS(object):
         for attr in MANAGED_ATTRIBUTES:
             person.attributes.pop(attr, None)
 
-        url = "/notification/v1/person/%s" % person.person_id
+        url = "/notification/v1/person/{}".format(person.person_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(person.json_data()))
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
 
+        return response.status
+
+    def create_new_dispatch(self, dispatch):
+        """
+        Create a new dispatch
+        :param dispatch:
+        is the new dispatch that the client wants to create
+        """
+        self._validate_uuid(dispatch.dispatch_id)
+
+        # Create new dispatch
+        url = "/notification/v1/dispatch"
+        post_response = NWS_DAO().postURL(
+            url, self._write_headers(), self._json_body(dispatch.json_data()))
+
+        if post_response.status != 200:
+            raise DataFailureException(
+                url, post_response.status, post_response.data)
+        return post_response.status
+
+    def delete_dispatch(self, dispatch_id):
+        """
+        Deleting an existing dispatch
+        :param dispatch_id: is the dispatch that the client wants to delete
+        """
+        self._validate_uuid(dispatch_id)
+
+        url = "/notification/v1/dispatch/{}".format(dispatch_id)
+        response = NWS_DAO().deleteURL(url, self._write_headers())
+
+        if response.status != 204:
+            raise DataFailureException(url, response.status, response.data)
+        return response.status
+
+    def get_message_type_by_id(self, message_type_id):
+        """
+        Get a message type by message type ID
+        :param message_type_id: is the message type that
+                                the client wants to retrieve
+        """
+        self._validate_uuid(message_type_id)
+
+        url = "/notification/v1/message-type/{}".format(message_type_id)
+        response = NWS_DAO().getURL(url, self._write_headers())
+        if response.status != 200:
+            raise DataFailureException(url, response.status, response.data)
+
+        data = json.loads(response.data)
+        return self._message_type_from_json(data.get("MessageType"))
+
+    def update_message_type(self, message_type):
+        """
+        Update an existing message type
+        :param message_type: is the updated message type that the
+                             client wants to update
+        """
+        self._validate_uuid(message_type.message_type_id)
+
+        url = "/notification/v1/message-type/{}".format(
+            message_type.message_type_id)
+        response = NWS_DAO().putURL(
+            url, self._write_headers(), self._json_body(
+                message_type.json_data()))
+
+        if response.status != 204:
+            raise DataFailureException(url, response.status, response.data)
+        return response.status
+
+    def delete_message_type(self, message_type_id):
+        """
+        Delete an existing message type
+        :param message_type_id: is the id of the message type the
+                                client wants to delete
+        """
+        self._validate_uuid(message_type_id)
+
+        url = "/notification/v1/message-type/{}".format(message_type_id)
+        response = NWS_DAO().deleteURL(url, self._write_headers())
+
+        if response.status != 204:
+            raise DataFailureException(url, response.status, response.data)
         return response.status
 
     def _endpoint_from_json(self, json_data):
@@ -487,6 +570,27 @@ class NWS(object):
 
         return subscription
 
+    def _message_type_from_json(self, json_data):
+        message_type = MessageType()
+        message_type.message_type_id = json_data["MessageTypeID"]
+        message_type.message_type_uri = json_data["MessageTypeURI"]
+        message_type.surrogate_id = json_data["SurrogateID"]
+        message_type.content_type = json_data["ContentType"]
+        message_type.destination_id = json_data["DestinationID"]
+        message_type.destination_type = json_data["DestinationType"]
+        message_type.from_dispatcher = json_data["From"]
+        message_type.to_endpoint = json_data["To"]
+        message_type.subject = json_data["Subject"]
+        message_type.body = json_data["Body"]
+        message_type.short = json_data["Short"]
+        if "Created" in json_data:
+            message_type.created = dateutil.parser.parse(json_data["Created"])
+        if "LastModified" in json_data:
+            message_type.last_modified = dateutil.parser.parse(
+                 json_data["LastModified"])
+
+        return message_type
+
     def _validate_uuid(self, uuid):
         if (uuid is None or not self._re_uuid.match(str(uuid))):
             raise InvalidUUID(uuid)
@@ -503,6 +607,11 @@ class NWS(object):
     def _validate_endpoint_protocol(self, protocol):
         if (protocol is None or not self._re_protocol.match(str(protocol))):
             raise InvalidEndpointProtocol(protocol)
+
+    def _validate_message_type_surrogate(self, surrogate_id):
+        if (surrogate_id is None or
+                not self._re_message_type_surrogate.match(str(surrogate_id))):
+            raise InvalidSurrogateID(surrogate_id)
 
     def _json_body(self, json_data):
         return json.dumps(json_data)

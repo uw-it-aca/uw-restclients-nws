@@ -20,4 +20,3 @@ class NWSTestActAs(TestCase):
         nws.actas_user = "javerage@washington.edu"
         self.assertEquals(
             nws._write_headers()["X_UW_ACT_AS"], "javerage@washington.edu")
-
