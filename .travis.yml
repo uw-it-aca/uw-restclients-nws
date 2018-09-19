@@ -1,7 +1,6 @@
 sudo: false
 language: python
 python:
-- '2.7'
 - '3.6'
 before_script:
 - pip install -e .
@@ -11,7 +10,7 @@ before_script:
 - pip install commonconf
 - pip install python-coveralls
 script:
-- pycodestyle --exclude=uw_nws/tests uw_nws
+- pycodestyle uw_nws/
 - coverage run uw_nws/test.py -v
 after_script:
 - coveralls
