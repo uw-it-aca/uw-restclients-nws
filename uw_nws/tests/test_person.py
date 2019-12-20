@@ -16,6 +16,7 @@ class NWSTestPerson(TestCase):
         self.assertTrue(person.default_endpoint() is not None)
         self.assertEquals(person.has_valid_endpoints(),
                           {"sms": True, "email": True})
+        self.assertEquals(len(person.get_verified_endpoints()), 1)
 
     def test_person_by_surrogate_id(self):
         nws = NWS()
@@ -45,9 +46,6 @@ class NWSTestPerson(TestCase):
         nws = NWS()
         person1 = nws.get_person_by_uwregid("9136CCB8F66711D5BE060004AC494FFE")
         self.assertEquals(len(person1.endpoints), 2)
-
-        person2 = nws.get_person_by_uwregid("9136CCB8F66711D5BE060004AC494FFE")
-        self.assertEquals(len(person2.endpoints), 2)
 
     def test_create_person(self):
         nws = NWS(actas_user="javerage")
