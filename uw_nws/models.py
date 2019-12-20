@@ -1,4 +1,5 @@
 from restclients_core import models
+import dateutil.parser
 
 
 class Person(models.Model):
@@ -14,10 +15,37 @@ class Person(models.Model):
         self.attributes = {}
         self.endpoints = []
 
+    @staticmethod
+    def from_json(json_data):
+        person = Person()
+        person.person_id = json_data["PersonID"]
+        person.person_uri = json_data["PersonURI"]
+        person.surrogate_id = json_data["SurrogateID"]
+        if "Created" in json_data:
+            person.created = dateutil.parser.parse(json_data["Created"])
+        if "LastModified" in json_data:
+            person.last_modified = dateutil.parser.parse(
+                json_data["LastModified"])
+        person.modified_by = json_data.get("ModifiedBy")
+        person.attributes = json_data.get("Attributes", {})
+
+        for endpoint_data in json_data.get("Endpoints", []):
+            person.endpoints.append(Endpoint.from_json(endpoint_data))
+        return person
+
+    def accepted_tos(self):
+        return self.attributes.get("AcceptedTermsOfUse", False)
+
     def default_endpoint(self):
         for endpoint in self.endpoints:
             if endpoint.default:
                 return endpoint
+
+    def has_valid_endpoints(self):
+        endpoints = {"sms": False, "email": False}
+        for endpoint in self.endpoints:
+            endpoints[endpoint.protocol.lower()] = True
+        return endpoints
 
     def json_data(self):
         return {
@@ -52,6 +80,26 @@ class Channel(models.Model):
     def __init__(self, *args, **kwargs):
         super(Channel, self).__init__(*args, **kwargs)
         self.tags = {}
+
+    @staticmethod
+    def from_json(json_data):
+        channel = Channel()
+        channel.channel_id = json_data["ChannelID"]
+        channel.channel_uri = json_data["ChannelURI"]
+        channel.surrogate_id = json_data["SurrogateID"]
+        channel.type = json_data["Type"]
+        channel.name = json_data["Name"]
+        channel.description = json_data.get("Description")
+        if "Expires" in json_data:
+            channel.expires = dateutil.parser.parse(json_data["Expires"])
+        if "Created" in json_data:
+            channel.created = dateutil.parser.parse(json_data["Created"])
+        if "LastModified" in json_data:
+            channel.last_modified = dateutil.parser.parse(
+                json_data["LastModified"])
+        channel.modified_by = json_data.get("ModifiedBy")
+        channel.tags = json_data.get("Tags", {})
+        return channel
 
     def json_data(self):
         return {
@@ -88,6 +136,27 @@ class Endpoint(models.Model):
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
+
+    @staticmethod
+    def from_json(json_data):
+        endpoint = Endpoint()
+        endpoint.endpoint_id = json_data["EndpointID"]
+        endpoint.endpoint_uri = json_data["EndpointURI"]
+        endpoint.endpoint_address = json_data["EndpointAddress"]
+        endpoint.carrier = json_data.get("Carrier")
+        endpoint.protocol = json_data["Protocol"]
+        endpoint.subscriber_id = json_data["SubscriberID"]
+        endpoint.owner = json_data["OwnerID"]
+        endpoint.status = json_data["Status"]
+        endpoint.active = json_data["Active"]
+        endpoint.default = json_data.get("Default")
+        if "Created" in json_data:
+            endpoint.created = dateutil.parser.parse(json_data["Created"])
+        if "LastModified" in json_data:
+            endpoint.last_modified = dateutil.parser.parse(
+                json_data["LastModified"])
+        endpoint.modified_by = json_data.get("ModifiedBy")
+        return endpoint
 
     def get_user_net_id(self):
         return self.subscriber_id
@@ -128,6 +197,25 @@ class Subscription(models.Model):
         super(Subscription, self).__init__(*args, **kwargs)
         self.channel = None
         self.endpoint = None
+
+    @staticmethod
+    def from_json(json_data):
+        subscription = Subscription()
+        subscription.subscription_id = json_data["SubscriptionID"]
+        subscription.subscription_uri = json_data["SubscriptionURI"]
+        if json_data.get("Created", None) is not None:
+            subscription.created = dateutil.parser.parse(json_data["Created"])
+        if json_data.get("LastModified", None) is not None:
+            subscription.last_modified = dateutil.parser.parse(
+                json_data["LastModified"])
+        subscription.modified_by = json_data.get("ModifiedBy")
+
+        if json_data.get("Endpoint", None) is not None:
+            subscription.endpoint = Endpoint.from_json(json_data["Endpoint"])
+
+        if json_data.get("Channel", None) is not None:
+            subscription.channel = Channel.from_json(json_data["Channel"])
+        return subscription
 
     def json_data(self):
         return {
@@ -193,6 +281,27 @@ class MessageType(models.Model):
     short = models.CharField(max_length=80)
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
+
+    @staticmethod
+    def from_json(json_data):
+        message_type = MessageType()
+        message_type.message_type_id = json_data["MessageTypeID"]
+        message_type.message_type_uri = json_data["MessageTypeURI"]
+        message_type.surrogate_id = json_data["SurrogateID"]
+        message_type.content_type = json_data["ContentType"]
+        message_type.destination_id = json_data["DestinationID"]
+        message_type.destination_type = json_data["DestinationType"]
+        message_type.from_dispatcher = json_data["From"]
+        message_type.to_endpoint = json_data["To"]
+        message_type.subject = json_data["Subject"]
+        message_type.body = json_data["Body"]
+        message_type.short = json_data["Short"]
+        if "Created" in json_data:
+            message_type.created = dateutil.parser.parse(json_data["Created"])
+        if "LastModified" in json_data:
+            message_type.last_modified = dateutil.parser.parse(
+                 json_data["LastModified"])
+        return message_type
 
     def json_data(self):
         return {

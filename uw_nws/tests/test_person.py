@@ -11,8 +11,11 @@ class NWSTestPerson(TestCase):
     def _assert_person_matches(self, person):
         self.assertEquals('javerage@washington.edu', person.surrogate_id)
         self.assertEquals('9136CCB8F66711D5BE060004AC494FFE', person.person_id)
+        self.assertTrue(person.accepted_tos())
         self.assertEquals(len(person.endpoints), 2)
         self.assertTrue(person.default_endpoint() is not None)
+        self.assertEquals(person.has_valid_endpoints(),
+                          {"sms": True, "email": True})
 
     def test_person_by_surrogate_id(self):
         nws = NWS()
