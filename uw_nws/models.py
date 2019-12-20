@@ -47,6 +47,13 @@ class Person(models.Model):
             endpoints[endpoint.protocol.lower()] = True
         return endpoints
 
+    def get_verified_endpoints(self):
+        verified_endpoints = {}
+        for endpoint in self.endpoints:
+            if endpoint.is_verified():
+                verified_endpoints[endpoint.protocol.lower()] = endpoint
+        return verified_endpoints
+
     def json_data(self):
         return {
             "Person": {
@@ -136,6 +143,9 @@ class Endpoint(models.Model):
     created = models.DateTimeField()
     last_modified = models.DateTimeField()
     modified_by = models.CharField(max_length=40)
+
+    def is_verified(self):
+        return (self.status is not None and self.status.lower() == 'verified')
 
     @staticmethod
     def from_json(json_data):
