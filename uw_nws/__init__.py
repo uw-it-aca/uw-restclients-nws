@@ -7,17 +7,16 @@ from restclients_core.exceptions import (
 from uw_nws.exceptions import (
     InvalidUUID, InvalidEndpointProtocol, InvalidSurrogateID)
 from uw_nws.dao import NWS_DAO
-from uw_nws.models import (
-    Person, Channel, Endpoint, Subscription, Dispatch, MessageType)
+from uw_nws.models import Person, Channel, Endpoint, Subscription, MessageType
 from urllib.parse import quote, urlencode
 from datetime import datetime, time
-import dateutil.parser
 import json
 import re
 
 MANAGED_ATTRIBUTES = (
     'DispatchedEmailCount', 'DispatchedTextMessageCount',
     'SentTextMessageCount', 'SubscriptionCount')
+API = "/notification/v1"
 
 
 class NWS(object):
@@ -49,14 +48,14 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/{}".format(endpoint_id)
+        url = "{}/endpoint/{}".format(API, endpoint_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
 
         data = json.loads(response.data)
-        return self._endpoint_from_json(data.get("Endpoint"))
+        return Endpoint.from_json(data.get("Endpoint"))
 
     def get_endpoint_by_subscriber_id_and_protocol(
             self, subscriber_id, protocol):
@@ -66,8 +65,8 @@ class NWS(object):
         self._validate_subscriber_id(subscriber_id)
         self._validate_endpoint_protocol(protocol)
 
-        url = "/notification/v1/endpoint?subscriber_id={}&protocol={}".format(
-            subscriber_id, protocol)
+        url = "{}/endpoint?subscriber_id={}&protocol={}".format(
+            API, subscriber_id, protocol)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -76,7 +75,7 @@ class NWS(object):
 
         data = json.loads(response.data)
         try:
-            return self._endpoint_from_json(data.get("Endpoints")[0])
+            return Endpoint.from_json(data.get("Endpoints")[0])
         except IndexError:
             raise DataFailureException(url, 404, "No SMS endpoint found")
 
@@ -84,8 +83,7 @@ class NWS(object):
         """
         Get an endpoint by address
         """
-        url = "/notification/v1/endpoint?endpoint_address={}".format(
-            endpoint_addr)
+        url = "{}/endpoint?endpoint_address={}".format(API, endpoint_addr)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -94,7 +92,7 @@ class NWS(object):
 
         data = json.loads(response.data)
         try:
-            return self._endpoint_from_json(data.get("Endpoints")[0])
+            return Endpoint.from_json(data.get("Endpoints")[0])
         except IndexError:
             raise DataFailureException(url, 404, "No SMS endpoint found")
 
@@ -104,8 +102,7 @@ class NWS(object):
         """
         self._validate_subscriber_id(subscriber_id)
 
-        url = "/notification/v1/endpoint?subscriber_id={}".format(
-            subscriber_id)
+        url = "{}/endpoint?subscriber_id={}".format(API, subscriber_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -116,7 +113,7 @@ class NWS(object):
 
         endpoints = []
         for datum in data.get("Endpoints", []):
-            endpoints.append(self._endpoint_from_json(datum))
+            endpoints.append(Endpoint.from_json(datum))
         return endpoints
 
     def resend_sms_endpoint_verification(self, endpoint_id):
@@ -126,7 +123,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/{}/verification".format(endpoint_id)
+        url = "{}/endpoint/{}/verification".format(API, endpoint_id)
 
         response = NWS_DAO().postURL(url, None, None)
 
@@ -141,7 +138,7 @@ class NWS(object):
         """
         self._validate_uuid(endpoint_id)
 
-        url = "/notification/v1/endpoint/{}".format(endpoint_id)
+        url = "{}/endpoint/{}".format(API, endpoint_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -156,7 +153,7 @@ class NWS(object):
         self._validate_uuid(endpoint.endpoint_id)
         self._validate_subscriber_id(endpoint.subscriber_id)
 
-        url = "/notification/v1/endpoint/{}".format(endpoint.endpoint_id)
+        url = "{}/endpoint/{}".format(API, endpoint.endpoint_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(endpoint.json_data()))
 
@@ -171,7 +168,7 @@ class NWS(object):
         """
         self._validate_subscriber_id(endpoint.subscriber_id)
 
-        url = "/notification/v1/endpoint"
+        url = "{}/endpoint".format(API)
         response = NWS_DAO().postURL(
             url, self._write_headers(), self._json_body(endpoint.json_data()))
 
@@ -189,7 +186,7 @@ class NWS(object):
         """
         self._validate_uuid(subscription_id)
 
-        url = "/notification/v1/subscription/{}".format(subscription_id)
+        url = "{}/subscription/{}".format(API, subscription_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -216,7 +213,7 @@ class NWS(object):
         if subscription.channel is not None:
             self._validate_uuid(subscription.channel.channel_id)
 
-        url = "/notification/v1/subscription"
+        url = "{}/subscription".format(API)
         response = NWS_DAO().postURL(url, self._write_headers(),
                                      self._json_body(subscription.json_data()))
 
@@ -276,8 +273,7 @@ class NWS(object):
         Search for all subscriptions by parameters
         """
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/subscription?{}".format(
-            urlencode(params, doseq=True))
+        url = "{}/subscription?{}".format(API, urlencode(params, doseq=True))
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -287,7 +283,7 @@ class NWS(object):
         data = json.loads(response.data)
         subscriptions = []
         for datum in data.get("Subscriptions", []):
-            subscriptions.append(self._subscription_from_json(datum))
+            subscriptions.append(Subscription.from_json(datum))
         return subscriptions
 
     def get_channel_by_channel_id(self, channel_id):
@@ -296,7 +292,7 @@ class NWS(object):
         """
         self._validate_uuid(channel_id)
 
-        url = "/notification/v1/channel/{}".format(channel_id)
+        url = "{}/channel/{}".format(API, channel_id)
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -304,7 +300,7 @@ class NWS(object):
             raise DataFailureException(url, response.status, response.data)
 
         data = json.loads(response.data)
-        return self._channel_from_json(data.get("Channel"))
+        return Channel.from_json(data.get("Channel"))
 
     def get_channels_by_sln(self, channel_type, sln):
         """
@@ -338,8 +334,7 @@ class NWS(object):
         Search for all channels by parameters
         """
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
-        url = "/notification/v1/channel?{}".format(
-            urlencode(params, doseq=True))
+        url = "{}/channel?{}".format(API, urlencode(params, doseq=True))
 
         response = NWS_DAO().getURL(url, self._read_headers)
 
@@ -349,7 +344,7 @@ class NWS(object):
         data = json.loads(response.data)
         channels = []
         for datum in data.get("Channels", []):
-            channels.append(self._channel_from_json(datum))
+            channels.append(Channel.from_json(datum))
         return channels
 
     def get_person_by_surrogate_id(self, surrogate_id):
@@ -361,7 +356,7 @@ class NWS(object):
         return self._get_person_by_id(uwregid)
 
     def _get_person_by_id(self, identifier):
-        url = "/notification/v1/person/{}".format(identifier)
+        url = "{}/person/{}".format(API, identifier)
 
         response = NWS_DAO().getURL(url, {"Accept": "application/json"})
 
@@ -369,7 +364,7 @@ class NWS(object):
             raise DataFailureException(url, response.status, response.data)
 
         data = json.loads(response.data)
-        return self._person_from_json(data.get("Person"))
+        return Person.from_json(data.get("Person"))
 
     def create_person(self, person):
         """
@@ -378,7 +373,7 @@ class NWS(object):
         """
         self._validate_subscriber_id(person.surrogate_id)
 
-        url = "/notification/v1/person"
+        url = "{}/person".format(API)
         response = NWS_DAO().postURL(
             url, self._write_headers(), self._json_body(person.json_data()))
 
@@ -401,7 +396,7 @@ class NWS(object):
         for attr in MANAGED_ATTRIBUTES:
             person.attributes.pop(attr, None)
 
-        url = "/notification/v1/person/{}".format(person.person_id)
+        url = "{}/person/{}".format(API, person.person_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(person.json_data()))
 
@@ -419,7 +414,7 @@ class NWS(object):
         self._validate_uuid(dispatch.dispatch_id)
 
         # Create new dispatch
-        url = "/notification/v1/dispatch"
+        url = "{}/dispatch".format(API)
         post_response = NWS_DAO().postURL(
             url, self._write_headers(), self._json_body(dispatch.json_data()))
 
@@ -435,7 +430,7 @@ class NWS(object):
         """
         self._validate_uuid(dispatch_id)
 
-        url = "/notification/v1/dispatch/{}".format(dispatch_id)
+        url = "{}/dispatch/{}".format(API, dispatch_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
@@ -450,13 +445,13 @@ class NWS(object):
         """
         self._validate_uuid(message_type_id)
 
-        url = "/notification/v1/message-type/{}".format(message_type_id)
+        url = "{}/message-type/{}".format(API, message_type_id)
         response = NWS_DAO().getURL(url, self._write_headers())
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
 
         data = json.loads(response.data)
-        return self._message_type_from_json(data.get("MessageType"))
+        return MessageType.from_json(data.get("MessageType"))
 
     def update_message_type(self, message_type):
         """
@@ -466,8 +461,7 @@ class NWS(object):
         """
         self._validate_uuid(message_type.message_type_id)
 
-        url = "/notification/v1/message-type/{}".format(
-            message_type.message_type_id)
+        url = "{}/message-type/{}".format(API, message_type.message_type_id)
         response = NWS_DAO().putURL(
             url, self._write_headers(), self._json_body(
                 message_type.json_data()))
@@ -484,112 +478,12 @@ class NWS(object):
         """
         self._validate_uuid(message_type_id)
 
-        url = "/notification/v1/message-type/{}".format(message_type_id)
+        url = "{}/message-type/{}".format(API, message_type_id)
         response = NWS_DAO().deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
         return response.status
-
-    def _endpoint_from_json(self, json_data):
-        endpoint = Endpoint()
-        endpoint.endpoint_id = json_data["EndpointID"]
-        endpoint.endpoint_uri = json_data["EndpointURI"]
-        endpoint.endpoint_address = json_data["EndpointAddress"]
-        endpoint.carrier = json_data.get("Carrier")
-        endpoint.protocol = json_data["Protocol"]
-        endpoint.subscriber_id = json_data["SubscriberID"]
-        endpoint.owner = json_data["OwnerID"]
-        endpoint.status = json_data["Status"]
-        endpoint.active = json_data["Active"]
-        endpoint.default = json_data.get("Default")
-        if "Created" in json_data:
-            endpoint.created = dateutil.parser.parse(json_data["Created"])
-        if "LastModified" in json_data:
-            endpoint.last_modified = dateutil.parser.parse(
-                json_data["LastModified"])
-        endpoint.modified_by = json_data.get("ModifiedBy")
-        return endpoint
-
-    def _person_from_json(self, json_data):
-        person = Person()
-        person.person_id = json_data["PersonID"]
-        person.person_uri = json_data["PersonURI"]
-        person.surrogate_id = json_data["SurrogateID"]
-        if "Created" in json_data:
-            person.created = dateutil.parser.parse(json_data["Created"])
-        if "LastModified" in json_data:
-            person.last_modified = dateutil.parser.parse(
-                json_data["LastModified"])
-        person.modified_by = json_data.get("ModifiedBy")
-        person.attributes = json_data.get("Attributes", {})
-
-        for endpoint_data in json_data.get("Endpoints", []):
-            person.endpoints.append(self._endpoint_from_json(endpoint_data))
-
-        return person
-
-    def _channel_from_json(self, json_data):
-        channel = Channel()
-        channel.channel_id = json_data["ChannelID"]
-        channel.channel_uri = json_data["ChannelURI"]
-        channel.surrogate_id = json_data["SurrogateID"]
-        channel.type = json_data["Type"]
-        channel.name = json_data["Name"]
-        channel.description = json_data.get("Description")
-        if "Expires" in json_data:
-            channel.expires = dateutil.parser.parse(json_data["Expires"])
-        if "Created" in json_data:
-            channel.created = dateutil.parser.parse(json_data["Created"])
-        if "LastModified" in json_data:
-            channel.last_modified = dateutil.parser.parse(
-                json_data["LastModified"])
-        channel.modified_by = json_data.get("ModifiedBy")
-        channel.tags = json_data.get("Tags", {})
-
-        return channel
-
-    def _subscription_from_json(self, json_data):
-        subscription = Subscription()
-        subscription.subscription_id = json_data["SubscriptionID"]
-        subscription.subscription_uri = json_data["SubscriptionURI"]
-        if json_data.get("Created", None) is not None:
-            subscription.created = dateutil.parser.parse(json_data["Created"])
-        if json_data.get("LastModified", None) is not None:
-            subscription.last_modified = dateutil.parser.parse(
-                json_data["LastModified"])
-        subscription.modified_by = json_data.get("ModifiedBy")
-
-        if json_data.get("Endpoint", None) is not None:
-            subscription.endpoint = self._endpoint_from_json(
-                json_data["Endpoint"])
-
-        if json_data.get("Channel", None) is not None:
-            subscription.channel = self._channel_from_json(
-                json_data["Channel"])
-
-        return subscription
-
-    def _message_type_from_json(self, json_data):
-        message_type = MessageType()
-        message_type.message_type_id = json_data["MessageTypeID"]
-        message_type.message_type_uri = json_data["MessageTypeURI"]
-        message_type.surrogate_id = json_data["SurrogateID"]
-        message_type.content_type = json_data["ContentType"]
-        message_type.destination_id = json_data["DestinationID"]
-        message_type.destination_type = json_data["DestinationType"]
-        message_type.from_dispatcher = json_data["From"]
-        message_type.to_endpoint = json_data["To"]
-        message_type.subject = json_data["Subject"]
-        message_type.body = json_data["Body"]
-        message_type.short = json_data["Short"]
-        if "Created" in json_data:
-            message_type.created = dateutil.parser.parse(json_data["Created"])
-        if "LastModified" in json_data:
-            message_type.last_modified = dateutil.parser.parse(
-                 json_data["LastModified"])
-
-        return message_type
 
     def _validate_uuid(self, uuid):
         if (uuid is None or not self._re_uuid.match(str(uuid))):
