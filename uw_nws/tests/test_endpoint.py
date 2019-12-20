@@ -21,6 +21,7 @@ class NWSTestEndpoint(TestCase):
         self.assertEquals('javerage', endpoint.subscriber_id)
         self.assertEquals('sdf', endpoint.owner)
         self.assertEquals('unconfirmed', endpoint.status)
+        self.assertFalse(endpoint.is_verified())
         self.assertEquals(False, endpoint.active)
 
         # Backward compatibility methods
@@ -52,6 +53,9 @@ class NWSTestEndpoint(TestCase):
 
         endpoint = endpoints[0]
         self._assert_endpoint_matches(endpoint)
+
+        endpoint = endpoints[1]
+        self.assertTrue(endpoint.is_verified())
 
         self.assertRaises(
             InvalidNetID, nws.get_endpoints_by_subscriber_id, None)
