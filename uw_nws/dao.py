@@ -14,6 +14,8 @@ class NWS_DAO(DAO):
         return [abspath(os.path.join(dirname(__file__), "resources"))]
 
     def _custom_headers(self, method, url, headers, body):
+        headers = {}
         bearer_key = self.get_service_setting("OAUTH_BEARER", "")
         if bearer_key:
-            return {"Authorization": "Bearer {}".format(bearer_key)}
+            headers["Authorization"] = "Bearer {}".format(bearer_key)
+        return headers
