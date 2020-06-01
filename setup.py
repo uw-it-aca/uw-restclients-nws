@@ -25,6 +25,7 @@ setup(
     install_requires=[
         'UW-RestClients-Core>1.0,<2.0',
         'python-dateutil',
+        'mock',
     ],
     license='Apache License, Version 2.0',
     description=(
