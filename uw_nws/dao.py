@@ -7,7 +7,7 @@ import os
 
 class NWS_AUTH_DAO(DAO):
     def service_name(self):
-        return 'nwsauth'
+        return 'nws_auth'
 
     def get_auth_token(self, secret):
         url = '/oauth2/token'
