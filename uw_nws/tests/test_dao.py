@@ -19,4 +19,4 @@ class NWSTestDAO(TestCase):
         nws = NWS_DAO()
         headers = nws._custom_headers("GET", "/", {}, "")
         self.assertTrue("Authorization" in headers)
-        self.assertEqual(headers["Authorization"], "Bearer abcdef")
+        self.assertEqual(headers["Authorization"], "abcdef")
