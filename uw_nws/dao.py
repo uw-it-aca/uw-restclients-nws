@@ -34,6 +34,5 @@ class NWS_DAO(DAO):
         headers = {}
         secret = self.get_service_setting('AUTH_SECRET', '')
         if secret:
-            token = NWS_AUTH_DAO().get_auth_token(secret)
-            headers['Authorization'] = 'Bearer {}'.format(token)
+            headers['Authorization'] = NWS_AUTH_DAO().get_auth_token(secret)
         return headers
