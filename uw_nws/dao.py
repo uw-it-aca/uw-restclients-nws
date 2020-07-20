@@ -9,6 +9,9 @@ class NWS_AUTH_DAO(DAO):
     def service_name(self):
         return 'nws_auth'
 
+    def _is_cacheable(self, method, url, headers, body=None):
+        return True
+
     def get_auth_token(self, secret):
         url = '/oauth2/token'
         headers = {'Authorization': 'Basic {}'.format(secret),
@@ -24,6 +27,10 @@ class NWS_AUTH_DAO(DAO):
 
 
 class NWS_DAO(DAO):
+    def __init__(self):
+        self.auth_dao = NWS_AUTH_DAO()
+        return super(NWS_DAO, self).__init__()
+
     def service_name(self):
         return 'nws'
 
@@ -34,5 +41,5 @@ class NWS_DAO(DAO):
         headers = {}
         secret = self.get_service_setting('AUTH_SECRET', '')
         if secret:
-            headers['Authorization'] = NWS_AUTH_DAO().get_auth_token(secret)
+            headers['Authorization'] = self.auth_dao.get_auth_token(secret)
         return headers

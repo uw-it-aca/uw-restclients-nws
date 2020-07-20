@@ -17,6 +17,7 @@ MANAGED_ATTRIBUTES = (
     'DispatchedEmailCount', 'DispatchedTextMessageCount',
     'SentTextMessageCount', 'SubscriptionCount')
 API = "/notification/v1"
+DAO = NWS_DAO()
 
 
 class NWS(object):
@@ -50,7 +51,7 @@ class NWS(object):
 
         url = "{}/endpoint/{}".format(API, endpoint_id)
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
 
@@ -68,7 +69,7 @@ class NWS(object):
         url = "{}/endpoint?subscriber_id={}&protocol={}".format(
             API, subscriber_id, protocol)
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -85,7 +86,7 @@ class NWS(object):
         """
         url = "{}/endpoint?endpoint_address={}".format(API, endpoint_addr)
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -104,7 +105,7 @@ class NWS(object):
 
         url = "{}/endpoint?subscriber_id={}".format(API, subscriber_id)
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -125,7 +126,7 @@ class NWS(object):
 
         url = "{}/endpoint/{}/verification".format(API, endpoint_id)
 
-        response = NWS_DAO().postURL(url, None, None)
+        response = DAO.postURL(url, None, None)
 
         if response.status != 202:
             raise DataFailureException(url, response.status, response.data)
@@ -139,7 +140,7 @@ class NWS(object):
         self._validate_uuid(endpoint_id)
 
         url = "{}/endpoint/{}".format(API, endpoint_id)
-        response = NWS_DAO().deleteURL(url, self._write_headers())
+        response = DAO.deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -154,7 +155,7 @@ class NWS(object):
         self._validate_subscriber_id(endpoint.subscriber_id)
 
         url = "{}/endpoint/{}".format(API, endpoint.endpoint_id)
-        response = NWS_DAO().putURL(
+        response = DAO.putURL(
             url, self._write_headers(), self._json_body(endpoint.json_data()))
 
         if response.status != 204:
@@ -169,7 +170,7 @@ class NWS(object):
         self._validate_subscriber_id(endpoint.subscriber_id)
 
         url = "{}/endpoint".format(API)
-        response = NWS_DAO().postURL(
+        response = DAO.postURL(
             url, self._write_headers(), self._json_body(endpoint.json_data()))
 
         if response.status != 201:
@@ -187,7 +188,7 @@ class NWS(object):
         self._validate_uuid(subscription_id)
 
         url = "{}/subscription/{}".format(API, subscription_id)
-        response = NWS_DAO().deleteURL(url, self._write_headers())
+        response = DAO.deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -214,8 +215,9 @@ class NWS(object):
             self._validate_uuid(subscription.channel.channel_id)
 
         url = "{}/subscription".format(API)
-        response = NWS_DAO().postURL(url, self._write_headers(),
-                                     self._json_body(subscription.json_data()))
+        response = DAO.postURL(
+            url, self._write_headers(),
+            self._json_body(subscription.json_data()))
 
         if response.status != 201:
             raise DataFailureException(url, response.status, response.data)
@@ -275,7 +277,7 @@ class NWS(object):
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
         url = "{}/subscription?{}".format(API, urlencode(params, doseq=True))
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -294,7 +296,7 @@ class NWS(object):
 
         url = "{}/channel/{}".format(API, channel_id)
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -336,7 +338,7 @@ class NWS(object):
         params = [(key, kwargs[key]) for key in sorted(kwargs.keys())]
         url = "{}/channel?{}".format(API, urlencode(params, doseq=True))
 
-        response = NWS_DAO().getURL(url, self._read_headers)
+        response = DAO.getURL(url, self._read_headers)
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -358,7 +360,7 @@ class NWS(object):
     def _get_person_by_id(self, identifier):
         url = "{}/person/{}".format(API, identifier)
 
-        response = NWS_DAO().getURL(url, {"Accept": "application/json"})
+        response = DAO.getURL(url, {"Accept": "application/json"})
 
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
@@ -374,7 +376,7 @@ class NWS(object):
         self._validate_subscriber_id(person.surrogate_id)
 
         url = "{}/person".format(API)
-        response = NWS_DAO().postURL(
+        response = DAO.postURL(
             url, self._write_headers(), self._json_body(person.json_data()))
 
         if response.status != 201:
@@ -397,7 +399,7 @@ class NWS(object):
             person.attributes.pop(attr, None)
 
         url = "{}/person/{}".format(API, person.person_id)
-        response = NWS_DAO().putURL(
+        response = DAO.putURL(
             url, self._write_headers(), self._json_body(person.json_data()))
 
         if response.status != 204:
@@ -415,7 +417,7 @@ class NWS(object):
 
         # Create new dispatch
         url = "{}/dispatch".format(API)
-        post_response = NWS_DAO().postURL(
+        post_response = DAO.postURL(
             url, self._write_headers(), self._json_body(dispatch.json_data()))
 
         if post_response.status != 200:
@@ -431,7 +433,7 @@ class NWS(object):
         self._validate_uuid(dispatch_id)
 
         url = "{}/dispatch/{}".format(API, dispatch_id)
-        response = NWS_DAO().deleteURL(url, self._write_headers())
+        response = DAO.deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
@@ -446,7 +448,7 @@ class NWS(object):
         self._validate_uuid(message_type_id)
 
         url = "{}/message-type/{}".format(API, message_type_id)
-        response = NWS_DAO().getURL(url, self._write_headers())
+        response = DAO.getURL(url, self._write_headers())
         if response.status != 200:
             raise DataFailureException(url, response.status, response.data)
 
@@ -462,7 +464,7 @@ class NWS(object):
         self._validate_uuid(message_type.message_type_id)
 
         url = "{}/message-type/{}".format(API, message_type.message_type_id)
-        response = NWS_DAO().putURL(
+        response = DAO.putURL(
             url, self._write_headers(), self._json_body(
                 message_type.json_data()))
 
@@ -479,7 +481,7 @@ class NWS(object):
         self._validate_uuid(message_type_id)
 
         url = "{}/message-type/{}".format(API, message_type_id)
-        response = NWS_DAO().deleteURL(url, self._write_headers())
+        response = DAO.deleteURL(url, self._write_headers())
 
         if response.status != 204:
             raise DataFailureException(url, response.status, response.data)
