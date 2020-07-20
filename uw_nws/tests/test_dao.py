@@ -20,3 +20,7 @@ class NWSTestDAO(TestCase):
         headers = nws._custom_headers("GET", "/", {}, "")
         self.assertTrue("Authorization" in headers)
         self.assertEqual(headers["Authorization"], "abcdef")
+
+    def test_is_cacheable(self):
+        auth = NWS_AUTH_DAO()
+        self.assertTrue(auth._is_cacheable("POST", "/", {}, ""))
